@@ -55,9 +55,23 @@ kubectl get pods -n nextcloud-system -o wide
 bash scripts/setup-automated-ssl.sh
 ```
 
-### Step 6: Configure Tiyi WAF
-1. **Frontend Site:** Create Site `nextcloud.sengporkeat.com`, set TLS Mode to **Uploaded**, and paste the generated `fullchain.pem` and `privkey.pem`.
-2. **Upstream Pool:** Add Endpoints `http://10.1.16.11:31497`, `http://10.1.16.12:31497`, and `http://10.1.16.13:31497` with `Passive Only` health checks.
+### Step 6: Configure Tiyi WAF (Exact Order of Operations)
+
+In Tiyi WAF, you must configure resources in this exact sequential order:
+
+1. **Step 6.1 — Upload Certificate:**
+   * Go to **Certificates / SSL** &rarr; **Add Certificate**.
+   * Upload the generated `fullchain.pem` (Certificate + Chain) and `privkey.pem`.
+2. **Step 6.2 — Create Upstream Pool:**
+   * Go to **Upstream Pools** &rarr; **Create Pool**.
+   * Add Endpoints: `http://10.1.16.11:31497`, `http://10.1.16.12:31497`, `http://10.1.16.13:31497`.
+   * Set Backend Protocol to **`HTTP`** and Health Check to **`Passive Only`**.
+3. **Step 6.3 — Create Frontend Site:**
+   * Go to **Sites** &rarr; **Create Site**.
+   * Host: `nextcloud.sengporkeat.com`.
+   * Target: Select the Upstream Pool created in Step 6.2.
+   * TLS Mode: Set to **`Uploaded`** and select the Certificate uploaded in Step 6.1.
+   * HTTP Behavior: **`Redirect to HTTPS`**.
 
 ---
 
@@ -66,7 +80,7 @@ bash scripts/setup-automated-ssl.sh
 | Document | Topic & Details |
 | :--- | :--- |
 | **[`docs/01-network-firewall-ports.md`](docs/01-network-firewall-ports.md)** | **Full IP matrix, Cilium/MetalLB/Longhorn ports, and firewall ACL rules.** |
-| **[`docs/02-waf-reverse-proxy-setup.md`](docs/02-waf-reverse-proxy-setup.md)** | **Tiyi WAF Site & Upstream Pool setup**, SSL termination, and passive health checks. |
+| **[`docs/02-waf-reverse-proxy-setup.md`](docs/02-waf-reverse-proxy-setup.md)** | **Tiyi WAF step-by-step workflow** (Certificate &rarr; Upstream Pool &rarr; Site). |
 | **[`docs/03-kubernetes-services-stack.md`](docs/03-kubernetes-services-stack.md)** | **Nextcloud, Collabora, MetalLB, and Traefik** architecture and configs. |
 | **[`docs/04-ssl-namecom-automation.md`](docs/04-ssl-namecom-automation.md)** | **Automated Let's Encrypt renewal** using Name.com DNS API Token and cron jobs. |
 
