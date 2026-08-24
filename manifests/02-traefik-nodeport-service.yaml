@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: traefik
+    meta.helm.sh/release-namespace: traefik-system
+  creationTimestamp: "2026-08-21T03:53:01Z"
+  labels:
+    app.kubernetes.io/instance: traefik-traefik-system
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: traefik
+    helm.sh/chart: traefik-41.2.0
+  name: traefik
+  namespace: traefik-system
+  resourceVersion: "1679664"
+  uid: d28fc2e7-76cb-4769-9c5a-dc858ee96f9a
+spec:
+  clusterIP: 10.233.23.138
+  clusterIPs:
+  - 10.233.23.138
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: web
+    nodePort: 31497
+    port: 80
+    protocol: TCP
+    targetPort: web
+  - name: websecure
+    nodePort: 31270
+    port: 443
+    protocol: TCP
+    targetPort: websecure
+  selector:
+    app.kubernetes.io/instance: traefik-traefik-system
+    app.kubernetes.io/name: traefik
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}

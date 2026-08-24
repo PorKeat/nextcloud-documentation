@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collabora
+  namespace: nextcloud-system
+  labels:
+    app: collabora
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collabora
+  template:
+    metadata:
+      labels:
+        app: collabora
+    spec:
+      containers:
+      - name: collabora
+        image: collabora/code:latest
+        ports:
+        - containerPort: 9980
+        env:
+        - name: domain
+          value: "nextcloud\\.example\\.com"
+        - name: extra_params
+          value: "--o:ssl.enable=false --o:ssl.termination=true"
+        - name: username
+          value: "<COLLABORA_ADMIN_USER>"
+        - name: password
+          value: "<COLLABORA_ADMIN_PASSWORD>"
+        readinessProbe:
+          httpGet:
+            path: /hosting/discovery
+            port: 9980
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
