@@ -1,0 +1,59 @@
+# ==============================================================================
+# Keycloak Ingress Architecture: Split-Horizon Public Auth vs. VPN Admin
+# ==============================================================================
+
+# 1. IP Allowlist Middleware for Keycloak Admin Console
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: keycloak-admin-ip-allowlist
+  namespace: nextcloud-system
+spec:
+  ipAllowList:
+    sourceRange:
+    - 10.1.16.0/24     # Internal Office / Node Network
+    - 10.20.0.0/24     # Office VPN Network CIDR
+    - 10.1.18.0/24     # WAF Internal Proxy Network
+---
+# 2. Public IngressRoute: Exposes ONLY OIDC Login & Discovery Endpoints
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: keycloak-public-route
+  namespace: nextcloud-system
+spec:
+  entryPoints:
+  - web
+  - websecure
+  routes:
+  - kind: Rule
+    # Strictly allow authentication and discovery paths; drop administrative paths
+    match: Host(`auth.sengporkeat.com`) && (PathPrefix(`/realms/`) || PathPrefix(`/resources/`) || PathPrefix(`/.well-known/`)) && !PathPrefix(`/realms/master/`)
+    middlewares:
+    - name: nextcloud-security-headers
+      namespace: nextcloud-system
+    services:
+    - name: keycloak-service
+      port: 8080
+---
+# 3. Private Admin IngressRoute: Restricted to Office / VPN IPs
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: keycloak-admin-route
+  namespace: nextcloud-system
+spec:
+  entryPoints:
+  - web
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`admin-auth.sengporkeat.com`)
+    middlewares:
+    - name: keycloak-admin-ip-allowlist
+      namespace: nextcloud-system
+    - name: nextcloud-security-headers
+      namespace: nextcloud-system
+    services:
+    - name: keycloak-service
+      port: 8080

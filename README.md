@@ -2,7 +2,7 @@
 
 **Maintainer:** `alexkgm`  
 **Workspace:** `unity-workspace`  
-**CNI:** Cilium | **Storage:** Longhorn | **Ingress:** Traefik | **WAF:** Tiyi WAF | **SSO:** OpenID Connect (`user_oidc`)  
+**CNI:** Cilium | **Storage:** Longhorn | **Ingress:** Traefik | **WAF:** Tiyi WAF | **SSO:** Keycloak / OpenID Connect  
 
 ---
 
@@ -95,8 +95,9 @@ In Tiyi WAF, configure resources in this exact sequence:
 | **[`docs/03-kubernetes-services-stack.md`](docs/03-kubernetes-services-stack.md)** | **Nextcloud, Collabora, MetalLB, and Traefik** architecture and configs. |
 | **[`docs/04-ssl-namecom-automation.md`](docs/04-ssl-namecom-automation.md)** | **Automated Let's Encrypt renewal** using Name.com DNS API Token and cron jobs. |
 | **[`docs/05-encryption-storage-guide.md`](docs/05-encryption-storage-guide.md)** | **Server-Side Encryption vs S3 storage**, Master Key configuration, and session fix. |
-| **[`docs/06-user-oidc-sso-guide.md`](docs/06-user-oidc-sso-guide.md)** | **Enterprise OpenID Connect (OIDC / SSO)** installation & Keycloak/Authentik setup. |
+| **[`docs/06-user-oidc-sso-guide.md`](docs/06-user-oidc-sso-guide.md)** | **Enterprise OpenID Connect (OIDC / SSO)** installation & Nextcloud setup. |
 | **[`docs/07-security-hardening-hsts.md`](docs/07-security-hardening-hsts.md)** | **Real Client IP forwarding, HSTS header injection**, and MinIO storage isolation. |
+| **[`docs/08-keycloak-sso-architecture-security.md`](docs/08-keycloak-sso-architecture-security.md)** | **Keycloak Split-Horizon architecture**, public OIDC vs VPN/Office-only admin console. |
 
 ---
 
@@ -104,23 +105,25 @@ In Tiyi WAF, configure resources in this exact sequence:
 
 ```
 nextcloud/
-├── README.md                            # Quickstart deployment commands & index
-├── docs/                                # Detailed architectural & operational guides
-│   ├── 01-network-firewall-ports.md     # Firewall rules & complete port matrix
-│   ├── 02-waf-reverse-proxy-setup.md    # WAF frontend & upstream pool configuration
-│   ├── 03-kubernetes-services-stack.md  # K8s components (Traefik, Cilium, MetalLB)
-│   ├── 04-ssl-namecom-automation.md     # Automated Name.com SSL & cron setup
-│   ├── 05-encryption-storage-guide.md   # Encryption modes & multi-replica stability
-│   ├── 06-user-oidc-sso-guide.md        # OpenID Connect (SSO) configuration
-│   └── 07-security-hardening-hsts.md    # Real client IP forwarding & HSTS
-├── manifests/                           # Production Kubernetes YAML manifests
-│   ├── 01-traefik-ingressroute.yaml     # IngressRoute with sticky cookies & HSTS
-│   ├── 02-traefik-nodeport-service.yaml # Traefik NodePort (Port 31497)
-│   ├── 03-nextcloud-deployment.yaml     # 3-replica Nextcloud (MinIO S3 backend)
-│   ├── 04-collabora-ingressroute.yaml   # IngressRoutes for Collabora Office
-│   ├── 05-collabora-deployment.yaml     # Collabora Online document editor
-│   ├── 06-metallb-config.yaml           # MetalLB IPAddressPool (10.1.16.200) & L2
-│   └── 07-traefik-security-headers-middleware.yaml # Traefik HSTS security headers
+├── README.md                                     # Quickstart deployment commands & index
+├── docs/                                         # Detailed architectural & operational guides
+│   ├── 01-network-firewall-ports.md              # Firewall rules & complete port matrix
+│   ├── 02-waf-reverse-proxy-setup.md             # WAF frontend & upstream pool configuration
+│   ├── 03-kubernetes-services-stack.md           # K8s components (Traefik, Cilium, MetalLB)
+│   ├── 04-ssl-namecom-automation.md              # Automated Name.com SSL & cron setup
+│   ├── 05-encryption-storage-guide.md            # Encryption modes & multi-replica stability
+│   ├── 06-user-oidc-sso-guide.md                 # OpenID Connect (SSO) configuration
+│   ├── 07-security-hardening-hsts.md             # Real client IP forwarding & HSTS
+│   └── 08-keycloak-sso-architecture-security.md  # Keycloak split-horizon & VPN admin guide
+├── manifests/                                    # Production Kubernetes YAML manifests
+│   ├── 01-traefik-ingressroute.yaml              # IngressRoute with sticky cookies & HSTS
+│   ├── 02-traefik-nodeport-service.yaml          # Traefik NodePort (Port 31497)
+│   ├── 03-nextcloud-deployment.yaml              # 3-replica Nextcloud (MinIO S3 backend)
+│   ├── 04-collabora-ingressroute.yaml            # IngressRoutes for Collabora Office
+│   ├── 05-collabora-deployment.yaml              # Collabora Online document editor
+│   ├── 06-metallb-config.yaml                    # MetalLB IPAddressPool (10.1.16.200) & L2
+│   ├── 07-traefik-security-headers-middleware.yaml # Traefik HSTS security headers
+│   └── 08-keycloak-ingress-split-horizon.yaml    # Keycloak Public OIDC vs VPN Admin routes
 └── scripts/
-    └── setup-automated-ssl.sh           # Let's Encrypt DNS-01 automated script
+    └── setup-automated-ssl.sh                    # Let's Encrypt DNS-01 automated script
 ```
