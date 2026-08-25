@@ -1,31 +1,26 @@
-# 7. Redis Distributed Caching & File Locking Architecture
+# 7. Redis Distributed Caching Architecture & ObjectStore Compatibility
 
-This guide covers the high-availability Redis Sentinel cluster configuration used for Nextcloud session caching and distributed transactional file locking.
-
----
-
-## 1. Redis Cluster Specifications
-
-* **Deployment:** Bitnami Redis Sentinel HA (2 Nodes)
-* **Service:** `nextcloud-redis.nextcloud-system.svc.cluster.local`
-* **Port:** `26379` (Sentinel) & `6379` (Direct)
-* **Sentinel Master Group:** `mymaster`
-* **Local In-Memory Cache:** `\OC\Memcache\APCu`
-* **Distributed Memory Cache:** `\OC\Memcache\Redis`
-* **Transactional Locking Cache:** `\OC\Memcache\Redis`
+This guide documents the Redis caching configuration and the **ObjectStore / S3 locking design rules**.
 
 ---
 
-## 2. Configuration Settings (`config.php`)
+## 1. Why `filelocking` is Disabled with MinIO S3 Object Storage
 
-To ensure file uploads and concurrent operations never encounter deadlocks or stale 423 locks during transient network events:
+In Nextcloud architectures with **Primary S3 Object Storage (`\OC\Files\ObjectStore\S3`)**:
+* S3 is inherently an atomic, immutable object store with built-in versioning and object-level concurrency.
+* Attempting to layer Nextcloud's POSIX-style transactional lock provider (`memcache.locking => \OC\Memcache\Redis`) over S3 creates **irreconcilable lock collisions (`LockedException: existing lock on file: none`)**, resulting in `HTTP 423 Locked` errors during multi-part stream uploads.
+* Nextcloud's official enterprise documentation explicitly advises **disabling transactional `memcache.locking`** when S3 is used as primary object storage.
+
+---
+
+## 2. Production Configuration (`config.php`)
+
+Redis is leveraged for **high-performance memory and session distribution**, while S3 handles object-level concurrency natively:
 
 ```php
 'memcache.local' => '\\OC\\Memcache\\APCu',
 'memcache.distributed' => '\\OC\\Memcache\\Redis',
-'memcache.locking' => '\\OC\\Memcache\\Redis',
-'filelocking.enabled' => true,
-'filelocking.ttl' => 600, // 10-minute auto-expiry for orphaned locks
+'filelocking.enabled' => false,
 'redis' => array (
   'host' => 'nextcloud-redis',
   'port' => 26379,
@@ -34,18 +29,4 @@ To ensure file uploads and concurrent operations never encounter deadlocks or st
   'timeout' => 1.5,
   'read_timeout' => 1.5,
 ),
-```
-
----
-
-## 3. Maintenance & Lock Flushing Commands
-
-When network interruptions cause temporary file locks:
-
-```bash
-# Rescan and synchronize file caches
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ files:scan --all
-
-# Clean orphaned file cache entries
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ files:cleanup
 ```
