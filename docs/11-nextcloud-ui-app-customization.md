@@ -88,7 +88,7 @@ If you want to keep the Photos app but absolutely must hide the "Places", "Map",
    /* Hide specific sidebar items in the Photos app */
    li[data-id-app-nav-item="places"],
    li[data-id-app-nav-item="maps"],
-   li[data-id-app-nav-item="people"],
+   li[data-id-app-nav-item="faces"],
    li[data-id-app-nav-item="on-this-day"] {
        display: none !important;
    }
