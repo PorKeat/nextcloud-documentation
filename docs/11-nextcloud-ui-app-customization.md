@@ -74,3 +74,26 @@ If you manage updates entirely via Kubernetes/Helm and don't want admins getting
 ```bash
 kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:disable updatenotification
 ```
+
+### Hiding Hardcoded App Elements via Custom CSS
+If you want to keep the Photos app but absolutely must hide the "Places", "Map", or "People" buttons from the sidebar, you can use the Custom CSS app to visually remove them.
+
+1. **Install the Custom CSS app:**
+   ```bash
+   kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:install theming_customcss
+   ```
+2. Go to **Settings -> Administration -> Theming** and scroll down to the Custom CSS box.
+3. Paste the following exact code:
+   ```css
+   /* Hide specific sidebar items in the Photos app */
+   li[data-id-app-nav-item="places"],
+   li[data-id-app-nav-item="maps"],
+   li[data-id-app-nav-item="people"],
+   li[data-id-app-nav-item="on-this-day"] {
+       display: none !important;
+   }
+   ```
+4. **Force the server to apply the changes:**
+   ```bash
+   kubectl exec -n nextcloud-system deployment/nextcloud -- php occ maintenance:theme:update
+   ```
