@@ -38,3 +38,39 @@ In Nextcloud version 25 and newer, the official **Photos** app natively includes
 1. **Option A (Ignore):** If you use the Photos app, simply ignore the tabs. They do not consume extra resources unless you actively browse them or run facial/location recognition background jobs.
 2. **Option B (Disable Maps App):** If you are seeing a completely separate app called "Maps" in your top navigation bar, you *can* disable that standalone app via **Settings -> Apps -> Your apps -> Maps -> Disable**.
 3. **Option C (Alternatives):** Some enterprises completely disable the official Nextcloud Photos app and install community alternatives (like the *Memories* app) which offer much stricter configuration options for metadata and UI elements.
+
+---
+
+## 3. Disabling Built-in "Ads", Pop-ups, and Telemetry
+
+Nextcloud comes with several built-in apps that act as pop-ups, welcome screens, or enterprise upgrade prompts. You don't need to dive into the database to remove them—you can cleanly disable them via the `occ` terminal.
+
+### The "First Run" Welcome Pop-up
+Every time a new user logs in, they get a welcome wizard pop-up. To disable it for everyone:
+```bash
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:disable firstrunwizard
+```
+
+### File Recommendations (Top of Files App)
+Nextcloud puts a "Recommendations" banner at the top of the files app guessing which files you want. If you find this annoying or want to save database CPU cycles:
+```bash
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:disable recommendations
+```
+
+### Enterprise Support / Upgrade Prompts
+If you are running the free community version, Nextcloud will occasionally show Admin prompts or include a "Support" app linking to their paid plans. 
+```bash
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:disable support
+```
+
+### Telemetry / Usage Data
+To stop Nextcloud from sending basic usage statistics back to their servers:
+```bash
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:disable survey_client
+```
+
+### Update Notifications
+If you manage updates entirely via Kubernetes/Helm and don't want admins getting web pop-ups saying "A new version of Nextcloud is available":
+```bash
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ app:disable updatenotification
+```
