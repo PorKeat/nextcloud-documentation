@@ -1,6 +1,6 @@
 # ==============================================================================
 # Keycloak Ingress Architecture: Single Domain (auth.sengporkeat.com)
-# Routing from Traefik NodePort 31497 -> Keycloak VM (10.1.18.6:9090)
+# Office Wi-Fi ONLY for /admin | Public Worldwide Access for Nextcloud SSO
 # ==============================================================================
 
 # 1. External Service & Endpoints mapping to Keycloak VM
@@ -40,20 +40,18 @@ spec:
     replacement: https://auth.sengporkeat.com/realms/unity-workspace/account/
     permanent: false
 ---
-# 3. IP Allowlist Middleware (Office Wi-Fi + VPN Subnets)
+# 3. IP Allowlist Middleware (Office Wi-Fi Subnets ONLY)
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: office-vpn-allowlist
+  name: office-wifi-allowlist
   namespace: nextcloud-system
 spec:
   ipAllowList:
     sourceRange:
-    - 10.1.16.0/24      # Office Wi-Fi / Internal K8s Subnet
-    - 10.20.0.0/24      # Office VPN Subnet CIDR
+    - 10.1.16.0/24      # Office Local Wi-Fi Subnet
     - 10.1.18.0/24      # WAF Internal Proxy Network
-    - 103.189.186.0/23  # Public Office / WAF Network
-    - 172.31.0.0/16     # Internal Transit / L2TP Network
+    - 103.189.186.0/23  # Office Public ISP IP Range
 ---
 # 4. Root Redirect IngressRoute
 apiVersion: traefik.io/v1alpha1
@@ -77,7 +75,7 @@ spec:
     - name: keycloak-vm-service
       port: 9090
 ---
-# 5. Public Route: Authentication & Nextcloud OIDC (Everything except /admin)
+# 5. Public Route: Open Worldwide (Nextcloud SSO Logins & Tokens)
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -89,6 +87,7 @@ spec:
   - websecure
   routes:
   - kind: Rule
+    # Allows all user logins, tokens, and resources; excludes /admin
     match: Host(`auth.sengporkeat.com`) && !PathPrefix(`/admin`)
     middlewares:
     - name: nextcloud-security-headers
@@ -97,7 +96,7 @@ spec:
     - name: keycloak-vm-service
       port: 9090
 ---
-# 6. Protected Route: Admin Console (Office Wi-Fi / VPN ONLY)
+# 6. Protected Route: Keycloak Admin Console (Office Wi-Fi ONLY)
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -109,9 +108,10 @@ spec:
   - websecure
   routes:
   - kind: Rule
+    # Protects /admin with Office Wi-Fi IP Allowlist
     match: Host(`auth.sengporkeat.com`) && PathPrefix(`/admin`)
     middlewares:
-    - name: office-vpn-allowlist
+    - name: office-wifi-allowlist
       namespace: nextcloud-system
     - name: nextcloud-security-headers
       namespace: nextcloud-system
