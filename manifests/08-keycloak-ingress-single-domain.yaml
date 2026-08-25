@@ -1,0 +1,61 @@
+# ==============================================================================
+# Keycloak Ingress Architecture: Single Domain (auth.sengporkeat.com)
+# Path-Based Access Control: Public OIDC vs. VPN/Office-Only Admin Console
+# ==============================================================================
+
+# 1. IP Allowlist Middleware (Office Wi-Fi + VPN Subnets)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: office-vpn-allowlist
+  namespace: nextcloud-system
+spec:
+  ipAllowList:
+    sourceRange:
+    - 10.1.16.0/24     # Office Wi-Fi / Internal K8s Subnet
+    - 10.20.0.0/24     # Office VPN Subnet CIDR
+    - 10.1.18.0/24     # WAF Internal Proxy Network
+---
+# 2. Public Route: Authentication & Nextcloud OIDC (Open to the World)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: keycloak-public-auth-route
+  namespace: nextcloud-system
+spec:
+  entryPoints:
+  - web
+  - websecure
+  routes:
+  - kind: Rule
+    # Allows login screens, tokens, and resources; explicitly blocks admin & master realm
+    match: Host(`auth.sengporkeat.com`) && (PathPrefix(`/realms/`) || PathPrefix(`/resources/`) || PathPrefix(`/.well-known/`)) && !PathPrefix(`/realms/master/`)
+    middlewares:
+    - name: nextcloud-security-headers
+      namespace: nextcloud-system
+    services:
+    - name: keycloak-service
+      port: 8080
+---
+# 3. Protected Route: Admin Console & Master Realm (Office Wi-Fi / VPN ONLY)
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: keycloak-admin-vpn-route
+  namespace: nextcloud-system
+spec:
+  entryPoints:
+  - web
+  - websecure
+  routes:
+  - kind: Rule
+    # Intercepts /admin and /realms/master/ on the EXACT SAME domain
+    match: Host(`auth.sengporkeat.com`) && (PathPrefix(`/admin`) || PathPrefix(`/realms/master`))
+    middlewares:
+    - name: office-vpn-allowlist
+      namespace: nextcloud-system
+    - name: nextcloud-security-headers
+      namespace: nextcloud-system
+    services:
+    - name: keycloak-service
+      port: 8080
