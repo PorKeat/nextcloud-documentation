@@ -1,65 +1,51 @@
-# 7. Enterprise Security Hardening & HSTS Guide
+# 7. Redis Distributed Caching & File Locking Architecture
 
-This guide covers the security hardening implemented to ensure real client IP visibility, brute-force protection accuracy, and browser-enforced HSTS encryption.
+This guide covers the high-availability Redis Sentinel cluster configuration used for Nextcloud session caching and distributed transactional file locking.
 
 ---
 
-## 1. Real Client IP Visibility (`trusted_proxies`)
+## 1. Redis Cluster Specifications
 
-Because Nextcloud sits behind the Tiyi WAF and Traefik Ingress, Nextcloud must be configured to trust the proxy subnets to extract the genuine user IP from the `X-Forwarded-For` header.
+* **Deployment:** Bitnami Redis Sentinel HA (2 Nodes)
+* **Service:** `nextcloud-redis.nextcloud-system.svc.cluster.local`
+* **Port:** `26379` (Sentinel) & `6379` (Direct)
+* **Sentinel Master Group:** `mymaster`
+* **Local In-Memory Cache:** `\OC\Memcache\APCu`
+* **Distributed Memory Cache:** `\OC\Memcache\Redis`
+* **Transactional Locking Cache:** `\OC\Memcache\Redis`
 
-### Configuration Applied
+---
+
+## 2. Configuration Settings (`config.php`)
+
+To ensure file uploads and concurrent operations never encounter deadlocks or stale 423 locks during transient network events:
+
+```php
+'memcache.local' => '\\OC\\Memcache\\APCu',
+'memcache.distributed' => '\\OC\\Memcache\\Redis',
+'memcache.locking' => '\\OC\\Memcache\\Redis',
+'filelocking.enabled' => true,
+'filelocking.ttl' => 600, // 10-minute auto-expiry for orphaned locks
+'redis' => array (
+  'host' => 'nextcloud-redis',
+  'port' => 26379,
+  'password' => '<REDIS_PASSWORD>',
+  'redis::sentinel' => 'mymaster',
+  'timeout' => 1.5,
+  'read_timeout' => 1.5,
+),
+```
+
+---
+
+## 3. Maintenance & Lock Flushing Commands
+
+When network interruptions cause temporary file locks:
+
 ```bash
-# Trust WAF subnet
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set trusted_proxies 0 --value="10.1.18.0/24"
+# Rescan and synchronize file caches
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ files:scan --all
 
-# Trust K8s node subnet
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set trusted_proxies 1 --value="10.1.16.0/24"
-
-# Trust internal Pod CIDR
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set trusted_proxies 2 --value="10.233.0.0/18"
-
-# Enable forwarded headers
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set forwarded_for_headers 0 --value="HTTP_X_FORWARDED_FOR"
+# Clean orphaned file cache entries
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ files:cleanup
 ```
-
-### Why This is Critical
-* **Prevents Global Lockouts:** Prevents Nextcloud's brute-force detector from banning the shared WAF IP address if one user types the wrong password repeatedly.
-* **Accurate Audit Logs:** User logins, file sharing events, and activity logs reflect the real public IP address of the client.
-
----
-
-## 2. HTTP Strict Transport Security (HSTS)
-
-HSTS instructs browsers that the site must only be accessed over secure HTTPS connections, preventing SSL-stripping and man-in-the-middle attacks.
-
-### Traefik Middleware (`manifests/07-traefik-security-headers-middleware.yaml`)
-```yaml
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: nextcloud-security-headers
-  namespace: nextcloud-system
-spec:
-  headers:
-    stsSeconds: 31536000
-    stsIncludeSubdomains: true
-    stsPreload: true
-    forceSTSHeader: true
-    customResponseHeaders:
-      X-Robots-Tag: "noindex, nofollow"
-```
-
-### Verification
-```bash
-curl -I -s -k https://nextcloud.sengporkeat.com/login | grep -i strict-transport-security
-# Expected output:
-# strict-transport-security: max-age=31536000; includeSubDomains; preload
-```
-
----
-
-## 3. Storage & S3 Isolation Checklist
-
-1. **MinIO S3 Access:** Accessible strictly via internal network (`10.1.18.7:9000`). Port `9000` is blocked from external internet routing.
-2. **Bucket Policy:** The `nextcloud-data` bucket is strictly configured as **Private** (no anonymous read/write).
