@@ -28,12 +28,15 @@ kubectl create secret generic nextcloud-credentials \
 kubectl apply -f manifests/06-metallb-config.yaml
 ```
 
-### Step 3: Deploy Traefik NodePort & IngressRoute
+### Step 3: Deploy Traefik NodePort, Security Headers & IngressRoute
 ```bash
 # Apply NodePort 31497 service
 kubectl apply -f manifests/02-traefik-nodeport-service.yaml
 
-# Apply IngressRoute with sticky session cookies
+# Apply HSTS & Security Headers Middleware
+kubectl apply -f manifests/07-traefik-security-headers-middleware.yaml
+
+# Apply IngressRoute with sticky session cookies & security headers
 kubectl apply -f manifests/01-traefik-ingressroute.yaml
 ```
 
@@ -49,28 +52,36 @@ kubectl apply -f manifests/03-nextcloud-deployment.yaml
 kubectl get pods -n nextcloud-system -o wide
 ```
 
-### Step 5: Automated Let's Encrypt SSL Generation
+### Step 5: Configure Trusted Proxies (Real Client IP)
+```bash
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set trusted_proxies 0 --value="10.1.18.0/24"
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set trusted_proxies 1 --value="10.1.16.0/24"
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set trusted_proxies 2 --value="10.233.0.0/18"
+kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:system:set forwarded_for_headers 0 --value="HTTP_X_FORWARDED_FOR"
+```
+
+### Step 6: Automated Let's Encrypt SSL Generation
 ```bash
 # On your node, run the automated Name.com DNS challenge script:
 bash scripts/setup-automated-ssl.sh
 ```
 
-### Step 6: Configure Tiyi WAF (Exact Order of Operations)
+### Step 7: Configure Tiyi WAF (Exact Order of Operations)
 
 In Tiyi WAF, configure resources in this exact sequence:
 
-1. **Step 6.1 — Upload Certificate:**
+1. **Step 7.1 — Upload Certificate:**
    * Go to **Certificates / SSL** &rarr; **Add Certificate**.
    * Upload `fullchain.pem` (or Certificate + Chain) and `privkey.pem`.
-2. **Step 6.2 — Create Upstream Pool:**
+2. **Step 7.2 — Create Upstream Pool:**
    * Go to **Upstream Pools** &rarr; **Create Pool**.
    * Add Endpoints: `http://10.1.16.11:31497`, `http://10.1.16.12:31497`, `http://10.1.16.13:31497`.
    * Set Backend Protocol to **`HTTP`** and Health Check to **`Passive Only`**.
-3. **Step 6.3 — Create Frontend Site:**
+3. **Step 7.3 — Create Frontend Site:**
    * Go to **Sites** &rarr; **Create Site**.
    * Host: `nextcloud.sengporkeat.com`.
-   * Target: Select the Upstream Pool created in Step 6.2.
-   * TLS Mode: Set to **`Uploaded`** and select the Certificate uploaded in Step 6.1.
+   * Target: Select the Upstream Pool created in Step 7.2.
+   * TLS Mode: Set to **`Uploaded`** and select the Certificate uploaded in Step 7.1.
    * HTTP Behavior: **`Redirect to HTTPS`**.
 
 ---
@@ -85,6 +96,7 @@ In Tiyi WAF, configure resources in this exact sequence:
 | **[`docs/04-ssl-namecom-automation.md`](docs/04-ssl-namecom-automation.md)** | **Automated Let's Encrypt renewal** using Name.com DNS API Token and cron jobs. |
 | **[`docs/05-encryption-storage-guide.md`](docs/05-encryption-storage-guide.md)** | **Server-Side Encryption vs S3 storage**, Master Key configuration, and session fix. |
 | **[`docs/06-user-oidc-sso-guide.md`](docs/06-user-oidc-sso-guide.md)** | **Enterprise OpenID Connect (OIDC / SSO)** installation & Keycloak/Authentik setup. |
+| **[`docs/07-security-hardening-hsts.md`](docs/07-security-hardening-hsts.md)** | **Real Client IP forwarding, HSTS header injection**, and MinIO storage isolation. |
 
 ---
 
@@ -99,14 +111,16 @@ nextcloud/
 │   ├── 03-kubernetes-services-stack.md  # K8s components (Traefik, Cilium, MetalLB)
 │   ├── 04-ssl-namecom-automation.md     # Automated Name.com SSL & cron setup
 │   ├── 05-encryption-storage-guide.md   # Encryption modes & multi-replica stability
-│   └── 06-user-oidc-sso-guide.md        # OpenID Connect (SSO) configuration
+│   ├── 06-user-oidc-sso-guide.md        # OpenID Connect (SSO) configuration
+│   └── 07-security-hardening-hsts.md    # Real client IP forwarding & HSTS
 ├── manifests/                           # Production Kubernetes YAML manifests
-│   ├── 01-traefik-ingressroute.yaml     # IngressRoute with sticky session cookies
+│   ├── 01-traefik-ingressroute.yaml     # IngressRoute with sticky cookies & HSTS
 │   ├── 02-traefik-nodeport-service.yaml # Traefik NodePort (Port 31497)
 │   ├── 03-nextcloud-deployment.yaml     # 3-replica Nextcloud (MinIO S3 backend)
 │   ├── 04-collabora-ingressroute.yaml   # IngressRoutes for Collabora Office
 │   ├── 05-collabora-deployment.yaml     # Collabora Online document editor
-│   └── 06-metallb-config.yaml           # MetalLB IPAddressPool (10.1.16.200) & L2
+│   ├── 06-metallb-config.yaml           # MetalLB IPAddressPool (10.1.16.200) & L2
+│   └── 07-traefik-security-headers-middleware.yaml # Traefik HSTS security headers
 └── scripts/
     └── setup-automated-ssl.sh           # Let's Encrypt DNS-01 automated script
 ```
