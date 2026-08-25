@@ -57,11 +57,11 @@ bash scripts/setup-automated-ssl.sh
 
 ### Step 6: Configure Tiyi WAF (Exact Order of Operations)
 
-In Tiyi WAF, you must configure resources in this exact sequential order:
+In Tiyi WAF, configure resources in this exact sequence:
 
 1. **Step 6.1 — Upload Certificate:**
    * Go to **Certificates / SSL** &rarr; **Add Certificate**.
-   * Upload the generated `fullchain.pem` (Certificate + Chain) and `privkey.pem`.
+   * Upload `fullchain.pem` (or Certificate + Chain) and `privkey.pem`.
 2. **Step 6.2 — Create Upstream Pool:**
    * Go to **Upstream Pools** &rarr; **Create Pool**.
    * Add Endpoints: `http://10.1.16.11:31497`, `http://10.1.16.12:31497`, `http://10.1.16.13:31497`.
@@ -83,6 +83,7 @@ In Tiyi WAF, you must configure resources in this exact sequential order:
 | **[`docs/02-waf-reverse-proxy-setup.md`](docs/02-waf-reverse-proxy-setup.md)** | **Tiyi WAF step-by-step workflow** (Certificate &rarr; Upstream Pool &rarr; Site). |
 | **[`docs/03-kubernetes-services-stack.md`](docs/03-kubernetes-services-stack.md)** | **Nextcloud, Collabora, MetalLB, and Traefik** architecture and configs. |
 | **[`docs/04-ssl-namecom-automation.md`](docs/04-ssl-namecom-automation.md)** | **Automated Let's Encrypt renewal** using Name.com DNS API Token and cron jobs. |
+| **[`docs/05-encryption-storage-guide.md`](docs/05-encryption-storage-guide.md)** | **Server-Side Encryption vs S3 storage**, Master Key configuration, and fixing key error banners. |
 
 ---
 
@@ -95,7 +96,8 @@ nextcloud/
 │   ├── 01-network-firewall-ports.md     # Firewall rules & complete port matrix
 │   ├── 02-waf-reverse-proxy-setup.md    # WAF frontend & upstream pool configuration
 │   ├── 03-kubernetes-services-stack.md  # K8s components (Traefik, Cilium, MetalLB)
-│   └── 04-ssl-namecom-automation.md     # Automated Name.com SSL & cron setup
+│   ├── 04-ssl-namecom-automation.md     # Automated Name.com SSL & cron setup
+│   └── 05-encryption-storage-guide.md   # Encryption modes & multi-replica stability
 ├── manifests/                           # Production Kubernetes YAML manifests
 │   ├── 01-traefik-ingressroute.yaml     # IngressRoute with sticky session cookies
 │   ├── 02-traefik-nodeport-service.yaml # Traefik NodePort (Port 31497)
