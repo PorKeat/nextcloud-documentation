@@ -1,4 +1,15 @@
 apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: upload-buffering-middleware
+  namespace: nextcloud-system
+spec:
+  buffering:
+    maxRequestBodyBytes: 10737418240  # 10 GB
+    memRequestBodyBytes: 33554432      # 32 MB
+    retryExpression: "IsNetworkError() && Attempts() < 3"
+---
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: nextcloud-route
@@ -9,10 +20,11 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host("nextcloud.sengporkeat.com") || Host("10.1.16.200") || Host("10.1.16.11")
-      || Host("10.1.16.12") || Host("10.1.16.13")
+    match: Host("nextcloud.sengporkeat.com") || Host("10.1.16.200") || Host("10.1.16.11") || Host("10.1.16.12") || Host("10.1.16.13")
     middlewares:
     - name: nextcloud-security-headers
+      namespace: nextcloud-system
+    - name: upload-buffering-middleware
       namespace: nextcloud-system
     services:
     - name: nextcloud-service
