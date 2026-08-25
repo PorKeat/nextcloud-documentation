@@ -2,7 +2,7 @@
 
 **Maintainer:** `alexkgm`  
 **Workspace:** `unity-workspace`  
-**CNI:** Cilium | **Storage:** Longhorn | **Ingress:** Traefik | **WAF:** Tiyi WAF  
+**CNI:** Cilium | **Storage:** Longhorn | **Ingress:** Traefik | **WAF:** Tiyi WAF | **SSO:** OpenID Connect (`user_oidc`)  
 
 ---
 
@@ -83,7 +83,8 @@ In Tiyi WAF, configure resources in this exact sequence:
 | **[`docs/02-waf-reverse-proxy-setup.md`](docs/02-waf-reverse-proxy-setup.md)** | **Tiyi WAF step-by-step workflow** (Certificate &rarr; Upstream Pool &rarr; Site). |
 | **[`docs/03-kubernetes-services-stack.md`](docs/03-kubernetes-services-stack.md)** | **Nextcloud, Collabora, MetalLB, and Traefik** architecture and configs. |
 | **[`docs/04-ssl-namecom-automation.md`](docs/04-ssl-namecom-automation.md)** | **Automated Let's Encrypt renewal** using Name.com DNS API Token and cron jobs. |
-| **[`docs/05-encryption-storage-guide.md`](docs/05-encryption-storage-guide.md)** | **Server-Side Encryption vs S3 storage**, Master Key configuration, and fixing key error banners. |
+| **[`docs/05-encryption-storage-guide.md`](docs/05-encryption-storage-guide.md)** | **Server-Side Encryption vs S3 storage**, Master Key configuration, and session fix. |
+| **[`docs/06-user-oidc-sso-guide.md`](docs/06-user-oidc-sso-guide.md)** | **Enterprise OpenID Connect (OIDC / SSO)** installation & Keycloak/Authentik setup. |
 
 ---
 
@@ -97,7 +98,8 @@ nextcloud/
 │   ├── 02-waf-reverse-proxy-setup.md    # WAF frontend & upstream pool configuration
 │   ├── 03-kubernetes-services-stack.md  # K8s components (Traefik, Cilium, MetalLB)
 │   ├── 04-ssl-namecom-automation.md     # Automated Name.com SSL & cron setup
-│   └── 05-encryption-storage-guide.md   # Encryption modes & multi-replica stability
+│   ├── 05-encryption-storage-guide.md   # Encryption modes & multi-replica stability
+│   └── 06-user-oidc-sso-guide.md        # OpenID Connect (SSO) configuration
 ├── manifests/                           # Production Kubernetes YAML manifests
 │   ├── 01-traefik-ingressroute.yaml     # IngressRoute with sticky session cookies
 │   ├── 02-traefik-nodeport-service.yaml # Traefik NodePort (Port 31497)
