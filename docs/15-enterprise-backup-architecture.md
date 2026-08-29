@@ -7,50 +7,47 @@ This document details the backup and disaster recovery architecture for the Next
 The visual blueprint below outlines how the Kubernetes cluster, Nextcloud application, and backup tools interact with the MinIO Docker server for both **Live Data** and **Backup Data**.
 
 ```mermaid
-graph TD
+graph LR
     %% Styling
-    classDef k8s fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff;
     classDef storage fill:#ff0000,stroke:#fff,stroke-width:2px,color:#fff;
     classDef pod fill:#fff,stroke:#326ce5,stroke-width:2px,color:#333;
     classDef db fill:#f2a900,stroke:#fff,stroke-width:2px,color:#fff;
     classDef tool fill:#00b894,stroke:#fff,stroke-width:2px,color:#fff;
 
-    User((User / Browser)) -->|HTTPS| APISIX
+    User((User / Web)) -->|HTTPS| APISIX
 
     subgraph Kubernetes["Kubernetes Cluster (10.1.16.x)"]
+        direction TB
         APISIX[APISIX Gateway]:::pod
         NC[Nextcloud App Pod]:::pod
         DB[(Database Pod)]:::db
+        Velero[Velero Agent]:::tool
+        DBCron[Database CronJob]:::tool
         
         APISIX -->|Routes Traffic| NC
         NC <-->|Read / Write| DB
         
-        subgraph Backup_Tools["Backup Tools"]
-            Velero[Velero Agent]:::tool
-            DBCron[Database Backup CronJob]:::tool
-        end
-        
-        %% Tool Actions
-        Velero -.->|Reads Cluster State| APISIX
-        Velero -.->|Reads Cluster State| NC
-        DBCron -.->|Dumps SQL Data| DB
+        Velero -.->|Reads State| APISIX
+        Velero -.->|Reads State| NC
+        DBCron -.->|Dumps SQL| DB
     end
 
     subgraph Storage["MinIO Docker Server (10.1.18.7)"]
+        direction TB
         B1[("Bucket: nextcloud-data<br>(Live Files)")]:::storage
         B2[("Bucket: velero<br>(K8s Configs)")]:::storage
         B3[("Bucket: db-backups<br>(SQL Dumps)")]:::storage
-        
         Versioning[MinIO Bucket Versioning]
-        Versioning -.->|Retains Deleted/Overwritten Files| B1
+        
+        Versioning -.->|Protects Files| B1
     end
 
     %% Live Data Flow
-    NC ===>|S3 API| B1
+    NC ===>|Live S3 Stream| B1
     
     %% Backup Data Flow
-    Velero ===>|S3 API| B2
-    DBCron ===>|S3 API| B3
+    Velero ===>|S3 Backup API| B2
+    DBCron ===>|S3 Backup API| B3
 ```
 
 > **Legend:**
