@@ -127,3 +127,7 @@ nextcloud/
 └── scripts/
     └── setup-automated-ssl.sh                    # Let's Encrypt DNS-01 automated script
 ```
+
+## Backup & Disaster Recovery
+* [15 - Enterprise Backup Architecture](docs/15-enterprise-backup-architecture.md)
+* [16 - Velero Installation Guide (Layer 1)](docs/16-velero-installation-guide.md)
