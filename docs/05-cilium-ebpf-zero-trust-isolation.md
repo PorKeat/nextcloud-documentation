@@ -60,7 +60,7 @@ graph TD
 
 ## Applied Policies
 
-The policies are defined in [`manifests/10-cilium-nextcloud-isolation.yaml`](../manifests/10-cilium-nextcloud-isolation.yaml):
+The policies are defined in [`manifests/03-security-cilium/cilium-nextcloud-isolation.yaml`](../manifests/03-security-cilium/cilium-nextcloud-isolation.yaml):
 
 ### 1. `nextcloud-system-namespace-isolation`
 * **Target:** All pods in `nextcloud-system`.
@@ -80,7 +80,7 @@ The policies are defined in [`manifests/10-cilium-nextcloud-isolation.yaml`](../
 To apply the Cilium policies to the cluster:
 
 ```bash
-kubectl apply -f manifests/10-cilium-nextcloud-isolation.yaml
+kubectl apply -f manifests/03-security-cilium/cilium-nextcloud-isolation.yaml
 ```
 
 To verify the active policies:
@@ -117,6 +117,6 @@ To prove that cross-namespace isolation is actively enforced by eBPF:
 If you need to instantly disable all isolation rules and return to the default flat network:
 
 ```bash
-kubectl delete -f manifests/10-cilium-nextcloud-isolation.yaml
+kubectl delete -f manifests/03-security-cilium/cilium-nextcloud-isolation.yaml
 ```
 *(Takes effect in 0.1 seconds across all nodes with zero downtime).*

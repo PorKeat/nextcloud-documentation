@@ -61,7 +61,7 @@ graph LR
 
 ## 3. Kubernetes Deployment & Service Manifests
 
-The full manifest is available at [`manifests/12-notify-push-deployment.yaml`](../manifests/12-notify-push-deployment.yaml).
+The full manifest is available at [`manifests/06-high-performance-push/notify-push-deployment.yaml`](../manifests/06-high-performance-push/notify-push-deployment.yaml).
 
 ### Environment Variables Breakdown
 

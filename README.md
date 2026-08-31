@@ -1,6 +1,6 @@
 # Nextcloud Enterprise Kubernetes Documentation
 
-A production-grade, enterprise documentation repository and manifest library for Nextcloud on Kubernetes.
+A production-grade, enterprise documentation repository and modular manifest library for Nextcloud on Kubernetes.
 
 ---
 
@@ -8,9 +8,9 @@ A production-grade, enterprise documentation repository and manifest library for
 
 ```
 nextcloud-documentation/
-├── 🏛️ docs/       # Architecture blueprints, security models, concepts & "How It Works"
-├── 🛠️ setup/      # Hands-on installation guides, configuration commands & performance tuning
-└── 📦 manifests/  # Production-ready Kubernetes YAML manifests (01 to 12)
+├── 🏛️ docs/       # Architecture blueprints, security models, concepts & "How It Works" (01 to 09)
+├── 🛠️ setup/      # Hands-on installation guides, configuration commands & performance tuning (01 to 14)
+└── 📦 manifests/  # Modular Kubernetes YAML manifests organized by component subfolders
 ```
 
 ---
@@ -52,17 +52,32 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 
 ---
 
-## 📦 3. Production Kubernetes Manifests (`manifests/`)
+## 📦 3. Modular Kubernetes Manifests (`manifests/`)
 
-* `01-traefik-ingressroute.yaml` - Traefik IngressRoute definitions
-* `02-traefik-nodeport-service.yaml` - Traefik NodePort services (`31497`/`31270`)
-* `03-nextcloud-deployment.yaml` - Nextcloud Green (Primary) deployment & volumes
-* `04-collabora-ingressroute.yaml` - Collabora Office IngressRoute
-* `05-collabora-deployment.yaml` - Collabora Online deployment
-* `06-metallb-config.yaml` - MetalLB IPAddressPool & L2Advertisement
-* `07-traefik-security-headers-middleware.yaml` - Traefik Security Headers Middleware
-* `08-keycloak-ingress-single-domain.yaml` - Keycloak IngressRoute
-* `09-database-backup-cronjob.yaml` - PostgreSQL nightly S3 backup CronJob
-* `10-cilium-nextcloud-isolation.yaml` - Cilium eBPF Zero-Trust isolation policies
-* `11-nextcloud-blue-deployment.yaml` - Nextcloud Blue (Preview/Dev) deployment & service
-* `12-notify-push-deployment.yaml` - Nextcloud Notify Push WebSocket service & deployment
+Organized into component-specific subfolders for easy maintenance, inspection, and updates:
+
+### 🌐 `01-ingress-gateway/`
+* `traefik-ingressroute.yaml` - Main IngressRoute definitions
+* `traefik-nodeport-service.yaml` - NodePort service exposures (`31497`/`31270`)
+* `traefik-security-headers-middleware.yaml` - HSTS & security headers middleware
+* `keycloak-ingress.yaml` - Keycloak single-domain routing
+* `collabora-ingressroute.yaml` - Collabora Office WOPI routing
+
+### 🔌 `02-networking-metallb/`
+* `metallb-config.yaml` - MetalLB IPAddressPool and L2Advertisement
+
+### 🛡️ `03-security-cilium/`
+* `cilium-nextcloud-isolation.yaml` - Cilium eBPF Zero-Trust isolation & DB lockdown
+
+### ☁️ `04-nextcloud-app/`
+* `nextcloud-green-deployment.yaml` - Nextcloud Green (Primary/Live) stack
+* `nextcloud-blue-deployment.yaml` - Nextcloud Blue (Preview/Dev) stack
+
+### 📄 `05-collabora-office/`
+* `collabora-deployment.yaml` - Collabora Online Office deployment
+
+### ⚡ `06-high-performance-push/`
+* `notify-push-deployment.yaml` - Notify Push WebSocket daemon & service
+
+### 💾 `07-disaster-recovery-backup/`
+* `database-backup-cronjob.yaml` - Nightly automated PostgreSQL S3 dump CronJob

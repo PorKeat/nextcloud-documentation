@@ -9,7 +9,7 @@ This guide provides the hands-on commands to apply, verify, and test **Cilium eB
 Run this command to apply the isolation policies to your Kubernetes cluster:
 
 ```bash
-kubectl apply -f manifests/10-cilium-nextcloud-isolation.yaml
+kubectl apply -f manifests/03-security-cilium/cilium-nextcloud-isolation.yaml
 ```
 
 Verify that the policies are active:
@@ -25,7 +25,7 @@ kubectl get cnp -n nextcloud-system
 To ensure Redis is strictly accessible only by Nextcloud:
 
 ```bash
-kubectl apply -f manifests/07-traefik-security-headers-middleware.yaml # Or apply the redis network policy
+kubectl apply -f manifests/01-ingress-gateway/traefik-security-headers-middleware.yaml # Or apply the redis network policy
 ```
 
 ---
@@ -63,5 +63,5 @@ To simulate a rogue pod in another namespace attempting to access your database:
 If you need to instantly disable all isolation rules:
 
 ```bash
-kubectl delete -f manifests/10-cilium-nextcloud-isolation.yaml
+kubectl delete -f manifests/03-security-cilium/cilium-nextcloud-isolation.yaml
 ```

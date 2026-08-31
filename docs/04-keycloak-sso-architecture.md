@@ -40,7 +40,7 @@ environment:
 
 ---
 
-## 3. Traefik Path-Based Ingress (`manifests/08-keycloak-ingress-single-domain.yaml`)
+## 3. Traefik Path-Based Ingress (`manifests/01-ingress-gateway/keycloak-ingress.yaml`)
 
 ### A. Public Authentication Route (Open to the World)
 Allows public users to authenticate into Nextcloud without granting access to administrative endpoints:

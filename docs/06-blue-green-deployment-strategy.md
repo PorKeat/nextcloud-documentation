@@ -53,7 +53,7 @@ Because Nextcloud pods are **stateless**, all persistent state lives in the shar
 Deploy the Blue service and deployment alongside Green:
 
 ```bash
-kubectl apply -f manifests/11-nextcloud-blue-deployment.yaml
+kubectl apply -f manifests/04-nextcloud-app/nextcloud-blue-deployment.yaml
 ```
 
 ### Step 2: Test & Verify on Blue

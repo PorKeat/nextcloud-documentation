@@ -2,7 +2,7 @@
 
 ---
 
-## 1. MetalLB LoadBalancer (`manifests/06-metallb-config.yaml`)
+## 1. MetalLB LoadBalancer (`manifests/02-networking-metallb/metallb-config.yaml`)
 
 * **Role:** Layer 2 LoadBalancer for bare-metal Kubernetes.
 * **Pool Range:** `10.1.16.200 - 10.1.16.200`
@@ -11,7 +11,7 @@
 
 ---
 
-## 2. Traefik Ingress Controller (`manifests/01-traefik-ingressroute.yaml`)
+## 2. Traefik Ingress Controller (`manifests/01-ingress-gateway/traefik-ingressroute.yaml`)
 
 * **NodePort Service:** Exposes HTTP on Port `31497`.
 * **Sticky Sessions:** 
@@ -30,7 +30,7 @@
 
 ---
 
-## 3. Nextcloud Deployment (`manifests/03-nextcloud-deployment.yaml`)
+## 3. Nextcloud Deployment (`manifests/04-nextcloud-app/nextcloud-green-deployment.yaml`)
 
 * **Replicas:** `3` pods
 * **Database:** PostgreSQL (`nextcloud-db-rw:5432`)
@@ -39,7 +39,7 @@
 
 ---
 
-## 4. Collabora Online Office (`manifests/05-collabora-deployment.yaml`)
+## 4. Collabora Online Office (`manifests/05-collabora-office/collabora-deployment.yaml`)
 
 * **Service:** `collabora` on port `9980`
 * **Role:** Real-time document editing for Nextcloud.

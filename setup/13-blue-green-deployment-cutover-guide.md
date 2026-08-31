@@ -9,7 +9,7 @@ This guide contains the exact commands to deploy **Nextcloud Blue**, test it via
 Deploy the Blue service and deployment alongside your existing live Green deployment:
 
 ```bash
-kubectl apply -f manifests/11-nextcloud-blue-deployment.yaml
+kubectl apply -f manifests/04-nextcloud-app/nextcloud-blue-deployment.yaml
 ```
 
 Check pod startup status:
