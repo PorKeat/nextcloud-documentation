@@ -1,0 +1,111 @@
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: nextcloud-system-namespace-isolation
+  namespace: nextcloud-system
+spec:
+  description: "Enforces zero-trust isolation on nextcloud-system namespace, allowing only Traefik and intra-namespace traffic."
+  endpointSelector: {} # Applies to all endpoints/pods in nextcloud-system
+  ingress:
+  # 1. Allow all pod-to-pod communication inside nextcloud-system
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: nextcloud-system
+
+  # 2. Allow Ingress traffic from Traefik Gateway (traefik-system namespace)
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: traefik-system
+        app.kubernetes.io/name: traefik
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      - port: "8080"
+        protocol: TCP
+      - port: "9980" # Collabora Office
+        protocol: TCP
+      - port: "7867" # Nextcloud Notify Push
+        protocol: TCP
+
+  # 3. Allow host & gateway ingress for NodePorts/External Proxies
+  - fromEntities:
+    - host
+    - remote-node
+
+  egress:
+  # 1. Allow all pod-to-pod egress inside nextcloud-system
+  - toEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: nextcloud-system
+
+  # 2. Allow DNS resolution to CoreDNS in kube-system
+  - toEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: kube-system
+        k8s-app: kube-dns
+    toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+      rules:
+        dns:
+        - matchPattern: "*"
+
+  # 3. Allow S3 Object Storage egress to MinIO Server (10.1.18.7)
+  - toCIDR:
+    - "10.1.18.7/32"
+    toPorts:
+    - ports:
+      - port: "9000"
+        protocol: TCP
+      - port: "9001"
+        protocol: TCP
+
+  # 4. Allow Outbound Internet / SSO / Keycloak / Webhooks
+  - toEntities:
+    - world
+    - host
+    - remote-node
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: postgresql-database-lockdown
+  namespace: nextcloud-system
+spec:
+  description: "Strictly locks down PostgreSQL database pods to Nextcloud and replication only."
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: nextcloud-db
+  ingress:
+  # 1. Allow Nextcloud application pods to access PostgreSQL on port 5432
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: nextcloud-system
+        app.kubernetes.io/name: nextcloud
+    toPorts:
+    - ports:
+      - port: "5432"
+        protocol: TCP
+
+  # 2. Allow DB pods to replicate with each other
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: nextcloud-system
+        cnpg.io/cluster: nextcloud-db
+    toPorts:
+    - ports:
+      - port: "5432"
+        protocol: TCP
+      - port: "8000" # CloudNativePG Operator metrics/health
+        protocol: TCP
+
+  # 3. Allow Backup CronJobs in nextcloud-system to dump DB
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: nextcloud-system
+    toPorts:
+    - ports:
+      - port: "5432"
+        protocol: TCP

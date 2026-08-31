@@ -131,3 +131,6 @@ nextcloud/
 ## Backup & Disaster Recovery
 * [15 - Enterprise Backup Architecture](docs/15-enterprise-backup-architecture.md)
 * [16 - Velero Installation Guide (Layer 1)](docs/16-velero-installation-guide.md)
+
+## Security & Network Isolation
+* [18 - Cilium eBPF Zero-Trust Namespace Isolation](docs/18-cilium-ebpf-network-isolation.md)
