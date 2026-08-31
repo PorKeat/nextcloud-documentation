@@ -12,8 +12,9 @@ Comprehensive architectural blueprints, installation guides, security policies, 
 
 ---
 
-## 🚀 Deployment Strategies
+## 🚀 Deployment & Performance Tuning
 * [19 - Nextcloud Blue-Green Zero-Downtime Deployment Strategy](docs/19-blue-green-deployment-strategy.md) ⭐
+* [20 - High-Performance Files Backend (Notify Push) Setup & Tuning](docs/20-notify-push-tuning-setup-guide.md) ⭐
 
 ---
 

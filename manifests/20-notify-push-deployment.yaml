@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud-notify-push
+  namespace: nextcloud-system
+  labels:
+    app: nextcloud-notify-push
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 7867
+    targetPort: 7867
+    protocol: TCP
+  selector:
+    app: nextcloud-notify-push
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-notify-push
+  namespace: nextcloud-system
+  labels:
+    app: nextcloud-notify-push
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud-notify-push
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: nextcloud-notify-push
+    spec:
+      containers:
+      - name: notify-push
+        image: nextcloud:apache
+        imagePullPolicy: IfNotPresent
+        command:
+        - /var/www/html/custom_apps/notify_push/bin/x86_64/notify_push
+        ports:
+        - containerPort: 7867
+          protocol: TCP
+        env:
+        - name: NEXTCLOUD_URL
+          value: "http://nextcloud-service:8080"
+        - name: DATABASE_URL
+          value: "postgres://admin:B4r%23hfd%40%212@nextcloud-db-rw:5432/nextcloud"
+        - name: REDIS_URL
+          value: "redis://:R5d%232D%40%215@nextcloud-redis-node-1.nextcloud-redis-headless:6379"
+        - name: NEXTCLOUD_CONFIG_DIR
+          value: "/var/www/html/config"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        volumeMounts:
+        - name: nextcloud-data
+          mountPath: /var/www/html
+      volumes:
+      - name: nextcloud-data
+        persistentVolumeClaim:
+          claimName: nextcloud-app-pvc
