@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud-service-blue
+  namespace: nextcloud-system
+  labels:
+    app.kubernetes.io/name: nextcloud
+    deployment.color: blue
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: nextcloud
+    deployment.color: blue
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-blue
+  namespace: nextcloud-system
+  labels:
+    app.kubernetes.io/name: nextcloud
+    deployment.color: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: nextcloud
+      deployment.color: blue
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: nextcloud
+        deployment.color: blue
+    spec:
+      containers:
+      - name: nextcloud
+        image: nextcloud:apache
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        env:
+        - name: POSTGRES_HOST
+          value: "nextcloud-db-rw"
+        - name: POSTGRES_DB
+          value: "nextcloud"
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "B4r#hfd@!2"
+        - name: OVERWRITEPROTOCOL
+          value: "https"
+        - name: OVERWRITECLIURL
+          value: "https://nextcloud.sengporkeat.com"
+        - name: OBJECTSTORE_S3_HOST
+          value: "10.1.18.7"
+        - name: OBJECTSTORE_S3_PORT
+          value: "9000"
+        - name: OBJECTSTORE_S3_SSL
+          value: "true"
+        - name: OBJECTSTORE_S3_BUCKET
+          value: "nextcloud-data"
+        - name: OBJECTSTORE_S3_KEY
+          value: "jrka8bLRhQKnFBax3WB9"
+        - name: OBJECTSTORE_S3_SECRET
+          value: "bnZZ0y8iNArMrqNYjeQhLA7FdAYvMbrsSLaHAWmZ"
+        - name: OBJECTSTORE_S3_REGION
+          value: "us-east-1"
+        - name: OBJECTSTORE_S3_USEPATH_STYLE
+          value: "true"
+        - name: OBJECTSTORE_S3_AUTOCREATE
+          value: "true"
+        - name: PHP_MEMORY_LIMIT
+          value: "2048M"
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - cat /usr/local/share/ca-certificates/minio-ca.crt >> /etc/ssl/certs/ca-certificates.crt 2>/dev/null && update-ca-certificates || true
+        volumeMounts:
+        - name: nextcloud-data
+          mountPath: /var/www/html
+        - name: custom-php-ini
+          mountPath: /usr/local/etc/php/conf.d/ca.ini
+          subPath: ca.ini
+          readOnly: true
+        - name: custom-php-ini
+          mountPath: /var/www/html/config/redis.config.php
+          subPath: custom-redis.config.php
+          readOnly: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+      volumes:
+      - name: nextcloud-data
+        persistentVolumeClaim:
+          claimName: nextcloud-app-pvc
+      - name: custom-php-ini
+        configMap:
+          name: nextcloud-php-custom-ini
