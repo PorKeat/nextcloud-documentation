@@ -4,64 +4,65 @@ A production-grade, enterprise documentation repository and manifest library for
 
 ---
 
-## 📁 Repository Structure Overview
+## 📁 Repository Structure
 
 ```
 nextcloud-documentation/
-├── 🏛️ docs/       # Architecture blueprints, security designs, and disaster recovery concepts
-├── 🛠️ setup/      # Step-by-step installation, setup, configuration, and performance tuning guides
-└── 📦 manifests/  # Production-ready Kubernetes YAML manifests (Deployments, Services, Policies, CronJobs)
+├── 🏛️ docs/       # Architecture blueprints, security models, concepts & "How It Works"
+├── 🛠️ setup/      # Hands-on installation guides, configuration commands & performance tuning
+└── 📦 manifests/  # Production-ready Kubernetes YAML manifests (01 to 12)
 ```
 
 ---
 
-## 🏛️ 1. Architecture & Security Blueprints (`docs/`)
+## 🏛️ 1. Architecture, Concepts & "How It Works" (`docs/`)
 
-High-level architectural designs, network maps, zero-trust security models, and disaster recovery strategies:
+Conceptual blueprints, system designs, network flows, and disaster recovery strategies:
 
-* [00 - Master Enterprise Infrastructure & Security Architecture](docs/00-master-enterprise-architecture.md) ⭐
-* [01 - Network Firewall & Port Matrix](docs/01-network-firewall-ports.md)
-* [03 - Kubernetes Services & Stack Breakdown](docs/03-kubernetes-services-stack.md)
-* [08 - Keycloak SSO Architecture & Security](docs/08-keycloak-sso-architecture-security.md)
-* [09 - MinIO S3 & Redis Sentinel Troubleshooting](docs/09-minio-s3-redis-troubleshooting.md)
-* [15 - 3-Tier Enterprise Backup Architecture](docs/15-enterprise-backup-architecture.md)
-* [18 - Cilium eBPF Zero-Trust Namespace Network Isolation](docs/18-cilium-ebpf-network-isolation.md) ⭐
-* [19 - Nextcloud Blue-Green Zero-Downtime Deployment Strategy](docs/19-blue-green-deployment-strategy.md) ⭐
+* [01 - Master Enterprise Infrastructure & Security Architecture](docs/01-master-enterprise-architecture.md) ⭐
+* [02 - Network Firewall & Port Flow Matrix](docs/02-network-firewall-ports.md)
+* [03 - Kubernetes Core Services & Stack Breakdown](docs/03-kubernetes-services-stack.md)
+* [04 - Keycloak SSO & OIDC Security Architecture](docs/04-keycloak-sso-architecture.md)
+* [05 - Cilium eBPF Zero-Trust Namespace Network Isolation](docs/05-cilium-ebpf-zero-trust-isolation.md) ⭐
+* [06 - Nextcloud Blue-Green Zero-Downtime Deployment Strategy](docs/06-blue-green-deployment-strategy.md) ⭐
+* [07 - 3-Tier Enterprise Disaster Recovery & Backup Architecture](docs/07-enterprise-3tier-backup-architecture.md)
+* [08 - High-Performance Files Backend (Notify Push) Architecture](docs/08-high-performance-notify-push-architecture.md) ⭐
+* [09 - MinIO S3 & Redis Sentinel Diagnostic Reference](docs/09-minio-s3-redis-troubleshooting.md)
 
 ---
 
 ## 🛠️ 2. Step-by-Step Setup & Configuration Guides (`setup/`)
 
-Hands-on deployment walkthroughs, installation steps, and performance tuning:
+Hands-on step-by-step setup guides, cut-and-paste commands, and configuration walkthroughs:
 
-* [02 - WAF & Reverse Proxy Setup](setup/02-waf-reverse-proxy-setup.md)
-* [04 - SSL Automation with Name.com](setup/04-ssl-namecom-automation.md)
-* [05 - Encryption & Storage Setup](setup/05-encryption-storage-guide.md)
-* [06 - User OIDC SSO Integration Guide](setup/06-user-oidc-sso-guide.md)
-* [07 - Security Hardening & HSTS Setup](setup/07-security-hardening-hsts.md)
-* [08 - Keycloak Standalone Traefik Ingress Guide](setup/08-keycloak-standalone-traefik-guide.md)
-* [10 - Collabora Nextcloud Office Setup](setup/10-collabora-nextcloud-office-setup.md)
-* [11 - Nextcloud UI & App Customization](setup/11-nextcloud-ui-app-customization.md)
-* [12 - Let's Encrypt Manual DNS Certificate Guide](setup/12-letsencrypt-manual-dns-certificate.md)
-* [14 - Collabora Custom Fonts in Kubernetes](setup/14-collabora-custom-fonts-k8s.md)
-* [16 - Velero Kubernetes Backup & Installation Guide](setup/16-velero-installation-guide.md) ⭐
-* [20 - High-Performance Files Backend (Notify Push) Setup & Tuning](setup/20-notify-push-tuning-setup-guide.md) ⭐
+* [01 - WAF & Reverse Proxy Setup](setup/01-waf-reverse-proxy-setup.md)
+* [02 - SSL Automation with Name.com](setup/02-ssl-namecom-automation.md)
+* [03 - Let's Encrypt Manual DNS Certificate Guide](setup/03-letsencrypt-manual-dns-certificate.md)
+* [04 - Security Hardening & HSTS Middleware Setup](setup/04-security-hardening-hsts.md)
+* [05 - Keycloak Standalone Traefik Ingress Guide](setup/05-keycloak-standalone-traefik-guide.md)
+* [06 - User OIDC SSO Nextcloud Integration Guide](setup/06-user-oidc-sso-guide.md)
+* [07 - Storage Setup & Server-Side Encryption](setup/07-encryption-storage-guide.md)
+* [08 - Collabora Nextcloud Office Setup](setup/08-collabora-nextcloud-office-setup.md)
+* [09 - Collabora Custom Fonts in Kubernetes](setup/09-collabora-custom-fonts-k8s.md)
+* [10 - Nextcloud UI Theming & App Customization](setup/10-nextcloud-ui-app-customization.md)
+* [11 - Velero Kubernetes Backup & S3 Installation Guide](setup/11-velero-backup-installation-guide.md) ⭐
+* [12 - Cilium eBPF Zero-Trust Isolation Setup & Testing](setup/12-cilium-ebpf-isolation-setup.md) ⭐
+* [13 - Blue-Green Deployment & Live Cutover Hands-On Guide](setup/13-blue-green-deployment-cutover-guide.md) ⭐
+* [14 - Notify Push High-Performance Backend Setup & Tuning](setup/14-notify-push-tuning-setup-guide.md) ⭐
 
 ---
 
-## 📦 3. Kubernetes Manifests (`manifests/`)
+## 📦 3. Production Kubernetes Manifests (`manifests/`)
 
-Ready-to-apply Kubernetes manifests:
-
-* `01-traefik-ingressroute.yaml` - Traefik ingress routes
-* `02-traefik-nodeport-service.yaml` - Traefik NodePort service definition
-* `03-nextcloud-deployment.yaml` - Primary Nextcloud deployment & volumes
-* `04-collabora-ingressroute.yaml` - Collabora Office routing
-* `05-collabora-deployment.yaml` - Collabora Office deployment
+* `01-traefik-ingressroute.yaml` - Traefik IngressRoute definitions
+* `02-traefik-nodeport-service.yaml` - Traefik NodePort services (`31497`/`31270`)
+* `03-nextcloud-deployment.yaml` - Nextcloud Green (Primary) deployment & volumes
+* `04-collabora-ingressroute.yaml` - Collabora Office IngressRoute
+* `05-collabora-deployment.yaml` - Collabora Online deployment
 * `06-metallb-config.yaml` - MetalLB IPAddressPool & L2Advertisement
-* `07-traefik-security-headers-middleware.yaml` - Security headers middleware
-* `08-keycloak-ingress-single-domain.yaml` - Keycloak SSO ingress route
-* `17-database-backup-cronjob.yaml` - PostgreSQL nightly S3 backup CronJob
-* `18-cilium-nextcloud-isolation.yaml` - Cilium eBPF Zero-Trust isolation policies
-* `19-nextcloud-blue-deployment.yaml` - Nextcloud Blue-Green deployment & service
-* `20-notify-push-deployment.yaml` - High-Performance Files Backend (Notify Push)
+* `07-traefik-security-headers-middleware.yaml` - Traefik Security Headers Middleware
+* `08-keycloak-ingress-single-domain.yaml` - Keycloak IngressRoute
+* `09-database-backup-cronjob.yaml` - PostgreSQL nightly S3 backup CronJob
+* `10-cilium-nextcloud-isolation.yaml` - Cilium eBPF Zero-Trust isolation policies
+* `11-nextcloud-blue-deployment.yaml` - Nextcloud Blue (Preview/Dev) deployment & service
+* `12-notify-push-deployment.yaml` - Nextcloud Notify Push WebSocket service & deployment
