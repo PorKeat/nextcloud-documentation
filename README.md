@@ -29,6 +29,7 @@ Conceptual blueprints, system designs, network flows, and disaster recovery stra
 * [08 - High-Performance Files Backend (Notify Push) Architecture](docs/08-high-performance-notify-push-architecture.md) ⭐
 * [09 - MinIO S3 & Redis Sentinel Diagnostic Reference](docs/09-minio-s3-redis-troubleshooting.md)
 * [10 - Enterprise Zero-Trust Runtime Security & Resilience Architecture](docs/10-enterprise-zero-trust-runtime-security.md) ⭐
+* [11 - HashiCorp Vault Enterprise Secrets Architecture](docs/11-hashicorp-vault-enterprise-secrets.md) ⭐
 
 ---
 
@@ -53,6 +54,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [15 - Enterprise Security Hardening & Threat Mitigation](setup/15-enterprise-security-hardening.md) ⭐
 * [16 - Disaster Recovery & Scheduled Backup Automation Guide](setup/16-disaster-recovery-backup-restore-guide.md) ⭐
 * [17 - Automated System Health & Security Scorecard Audit](setup/17-system-health-security-audit.md) ⭐
+* [18 - HashiCorp Vault Secrets Management & Web UI Guide](setup/18-hashicorp-vault-secrets-management.md) ⭐
 
 ---
 
