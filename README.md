@@ -52,6 +52,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [14 - Notify Push High-Performance Backend Setup & Tuning](setup/14-notify-push-tuning-setup-guide.md) ⭐
 * [15 - Enterprise Security Hardening & Threat Mitigation](setup/15-enterprise-security-hardening.md) ⭐
 * [16 - Disaster Recovery & Scheduled Backup Automation Guide](setup/16-disaster-recovery-backup-restore-guide.md) ⭐
+* [17 - Automated System Health & Security Scorecard Audit](setup/17-system-health-security-audit.md) ⭐
 
 ---
 
@@ -90,4 +91,5 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 
 ## 🔍 4. Automation & Health Scripts (`scripts/`)
 
-* [`enterprise-health-audit.sh`](scripts/enterprise-health-audit.sh) — **1-Click System Health & Security Scorecard Audit Script**. Run directly on any node to verify cluster HA, database health, eBPF firewall lockdown, and backup retention.
+* [`enterprise-health-audit.sh`](scripts/enterprise-health-audit.sh) — **1-Click System Health & Security Scorecard Audit Script**. Run directly on any node (`cluster-audit`) to verify cluster HA, database health, eBPF firewall lockdown, and backup retention.
+* [`node1-rejoin-and-audit.sh`](scripts/node1-rejoin-and-audit.sh) — **Node 1 Recovery & Setup Script**. Run when Node 1 boots up to configure the local loopback and install the audit tool.
