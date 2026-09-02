@@ -42,10 +42,24 @@ spec:
         app.kubernetes.io/name: nextcloud
         deployment.color: blue
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: nextcloud
         image: nextcloud:apache
         imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+            - CHOWN
+            - SETUID
+            - SETGID
+            - DAC_OVERRIDE
         ports:
         - containerPort: 80
           protocol: TCP
@@ -57,7 +71,7 @@ spec:
         - name: POSTGRES_USER
           value: "admin"
         - name: POSTGRES_PASSWORD
-          value: "B4r#hfd@!2"
+          value: "<DB_PASSWORD>"
         - name: OVERWRITEPROTOCOL
           value: "https"
         - name: OVERWRITECLIURL
@@ -71,9 +85,9 @@ spec:
         - name: OBJECTSTORE_S3_BUCKET
           value: "nextcloud-data"
         - name: OBJECTSTORE_S3_KEY
-          value: "jrka8bLRhQKnFBax3WB9"
+          value: "<MINIO_ACCESS_KEY>"
         - name: OBJECTSTORE_S3_SECRET
-          value: "bnZZ0y8iNArMrqNYjeQhLA7FdAYvMbrsSLaHAWmZ"
+          value: "<MINIO_SECRET_KEY>"
         - name: OBJECTSTORE_S3_REGION
           value: "us-east-1"
         - name: OBJECTSTORE_S3_USEPATH_STYLE

@@ -37,10 +37,21 @@ spec:
       labels:
         app: nextcloud-notify-push
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 33
+        runAsGroup: 33
       containers:
       - name: notify-push
         image: nextcloud:apache
         imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
         command:
         - /var/www/html/custom_apps/notify_push/bin/x86_64/notify_push
         ports:
@@ -50,9 +61,9 @@ spec:
         - name: NEXTCLOUD_URL
           value: "http://nextcloud-service:8080"
         - name: DATABASE_URL
-          value: "postgres://admin:B4r%23hfd%40%212@nextcloud-db-rw:5432/nextcloud"
+          value: "postgres://admin:<URL_ENCODED_DB_PASSWORD>@nextcloud-db-rw:5432/nextcloud"
         - name: REDIS_URL
-          value: "redis://:R5d%232D%40%215@nextcloud-redis-node-1.nextcloud-redis-headless:6379"
+          value: "redis://:<URL_ENCODED_REDIS_PASSWORD>@nextcloud-redis-node-1.nextcloud-redis-headless:6379"
         - name: NEXTCLOUD_CONFIG_DIR
           value: "/var/www/html/config"
         resources:

@@ -49,6 +49,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [12 - Cilium eBPF Zero-Trust Isolation Setup & Testing](setup/12-cilium-ebpf-isolation-setup.md) ⭐
 * [13 - Blue-Green Deployment & Live Cutover Hands-On Guide](setup/13-blue-green-deployment-cutover-guide.md) ⭐
 * [14 - Notify Push High-Performance Backend Setup & Tuning](setup/14-notify-push-tuning-setup-guide.md) ⭐
+* [15 - Enterprise Security Hardening & Threat Mitigation](setup/15-enterprise-security-hardening.md) ⭐
 
 ---
 
