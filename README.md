@@ -85,3 +85,9 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 ### 💾 `07-disaster-recovery-backup/`
 * `velero-daily-schedule.yaml` - Automated Velero daily snapshot schedule (7-Day TTL)
 * `database-backup-cronjob.yaml` - Nightly automated PostgreSQL S3 dump CronJob (7-Day Auto-Purge)
+
+---
+
+## 🔍 4. Automation & Health Scripts (`scripts/`)
+
+* [`enterprise-health-audit.sh`](scripts/enterprise-health-audit.sh) — **1-Click System Health & Security Scorecard Audit Script**. Run directly on any node to verify cluster HA, database health, eBPF firewall lockdown, and backup retention.
