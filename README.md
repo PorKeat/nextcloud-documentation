@@ -55,6 +55,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [16 - Disaster Recovery & Scheduled Backup Automation Guide](setup/16-disaster-recovery-backup-restore-guide.md) ⭐
 * [17 - Automated System Health & Security Scorecard Audit](setup/17-system-health-security-audit.md) ⭐
 * [18 - HashiCorp Vault Secrets Management & Web UI Guide](setup/18-hashicorp-vault-secrets-management.md) ⭐
+* [19 - HashiCorp Vault Agent In-Memory Sidecar Injection Guide](setup/19-vault-agent-sidecar-injection-guide.md) ⭐
 
 ---
 
@@ -88,6 +89,10 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 ### 💾 `07-disaster-recovery-backup/`
 * `velero-daily-schedule.yaml` - Automated Velero daily snapshot schedule (7-Day TTL)
 * `database-backup-cronjob.yaml` - Nightly automated PostgreSQL S3 dump CronJob (7-Day Auto-Purge)
+
+### 🔐 `08-vault-integration/`
+* `vault-agent-injector.yaml` - Official HashiCorp Vault Agent Injector controller
+* `vault-agent-template-example.yaml` - In-memory RAM (`tmpfs`) sidecar injection template
 
 ---
 

@@ -1,0 +1,46 @@
+# ==============================================================================
+# Enterprise HashiCorp Vault Agent In-Memory Sidecar Injection Template
+# Injects secrets directly into pod RAM (/vault/secrets/) without touching etcd.
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud-vault-example
+  namespace: nextcloud-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud-vault-app
+  template:
+    metadata:
+      labels:
+        app: nextcloud-vault-app
+      annotations:
+        # 1. Enable Vault Agent Injection
+        vault.hashicorp.com/agent-inject: "true"
+        
+        # 2. Bind to Vault Least-Privilege Role
+        vault.hashicorp.com/role: "nextcloud-role"
+        
+        # 3. Define Secret Path & In-Memory RAM File Destination
+        vault.hashicorp.com/agent-inject-secret-credentials.env: "secret/data/nextcloud"
+        
+        # 4. Format Secret Content with Golang Templating
+        vault.hashicorp.com/agent-inject-template-credentials.env: |
+          {{- with secret "secret/data/nextcloud" -}}
+          export POSTGRES_USER="{{ .Data.data.db_user }}"
+          export POSTGRES_PASSWORD="{{ .Data.data.db_password }}"
+          export OBJECTSTORE_S3_KEY="{{ .Data.data.minio_access_key }}"
+          export OBJECTSTORE_S3_SECRET="{{ .Data.data.minio_secret_key }}"
+          export NEXTCLOUD_ADMIN_USER="{{ .Data.data.admin_user }}"
+          export NEXTCLOUD_ADMIN_PASSWORD="{{ .Data.data.admin_password }}"
+          {{- end -}}
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: nextcloud
+        image: nextcloud:apache
+        ports:
+        - containerPort: 80
+        # Application reads secrets from RAM (/vault/secrets/credentials.env)
