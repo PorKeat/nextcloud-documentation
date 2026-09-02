@@ -43,40 +43,40 @@ vault status
 
 ## 💾 3. Storing & Managing Secrets (KV v2)
 
-### Storing All System Secrets in 1 Command:
+### Storing System Secrets (Template with Secure Placeholders):
 ```bash
-# 1. Nextcloud Core
+# 1. Nextcloud Core Credentials
 vault kv put secret/nextcloud \
   db_host="nextcloud-db-rw" \
   db_name="nextcloud" \
   db_user="admin" \
-  db_password="B4r#hfdA!2" \
-  minio_access_key="jrka8bLRhQKnFBax3WB9" \
-  minio_secret_key="bnZZ0y8iNArMrqNYjeQhLA7FdAYvMbrsSLaHAWmZ" \
+  db_password="<YOUR_DB_PASSWORD>" \
+  minio_access_key="<YOUR_MINIO_ACCESS_KEY>" \
+  minio_secret_key="<YOUR_MINIO_SECRET_KEY>" \
   admin_user="admin" \
-  admin_password="Az@1af#23f4"
+  admin_password="<YOUR_NEXTCLOUD_ADMIN_PASSWORD>"
 
-# 2. Collabora Office
+# 2. Collabora Office Credentials
 vault kv put secret/collabora \
   admin_user="admin" \
-  admin_password="Co8#gdw2fe"
+  admin_password="<YOUR_COLLABORA_ADMIN_PASSWORD>"
 
-# 3. Automated Backups & MinIO
+# 3. Automated Backups & MinIO Master Storage Keys
 vault kv put secret/backups \
   minio_endpoint="https://10.1.18.7:9000" \
   minio_admin_user="admin" \
-  minio_admin_password="7gz7gMCF1" \
+  minio_admin_password="<YOUR_MINIO_ADMIN_SECRET>" \
   velero_bucket="velero" \
   db_backup_bucket="db-backups" \
-  db_dump_password="B4r#hfdA!2"
+  db_dump_password="<YOUR_DB_DUMP_PASSWORD>"
 
-# 4. Keycloak SSO
+# 4. Keycloak SSO Configurations
 vault kv put secret/keycloak \
   admin_user="admin" \
   realm="nextcloud" \
   client_id="nextcloud-k8s"
 
-# 5. Infrastructure Nodes
+# 5. Infrastructure Node Topology
 vault kv put secret/infrastructure \
   node1_ip="10.1.16.11" \
   node2_ip="10.1.16.12" \
