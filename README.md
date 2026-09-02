@@ -51,6 +51,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [13 - Blue-Green Deployment & Live Cutover Hands-On Guide](setup/13-blue-green-deployment-cutover-guide.md) ⭐
 * [14 - Notify Push High-Performance Backend Setup & Tuning](setup/14-notify-push-tuning-setup-guide.md) ⭐
 * [15 - Enterprise Security Hardening & Threat Mitigation](setup/15-enterprise-security-hardening.md) ⭐
+* [16 - Disaster Recovery & Scheduled Backup Automation Guide](setup/16-disaster-recovery-backup-restore-guide.md) ⭐
 
 ---
 
@@ -82,4 +83,5 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 * `notify-push-deployment.yaml` - Notify Push WebSocket daemon & service
 
 ### 💾 `07-disaster-recovery-backup/`
-* `database-backup-cronjob.yaml` - Nightly automated PostgreSQL S3 dump CronJob
+* `velero-daily-schedule.yaml` - Automated Velero daily snapshot schedule (7-Day TTL)
+* `database-backup-cronjob.yaml` - Nightly automated PostgreSQL S3 dump CronJob (7-Day Auto-Purge)

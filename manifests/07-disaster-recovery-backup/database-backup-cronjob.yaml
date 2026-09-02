@@ -4,7 +4,7 @@ metadata:
   name: nextcloud-db-backup
   namespace: nextcloud-system
 spec:
-  schedule: "0 2 * * *" # Runs every night at 2:00 AM
+  schedule: "0 2 * * *" # Runs every night at 2:00 AM UTC
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
   jobTemplate:
@@ -14,39 +14,45 @@ spec:
           restartPolicy: OnFailure
           containers:
           - name: pg-dump-to-minio
-            image: postgres:15-alpine
+            image: postgres:16-alpine
             command:
             - /bin/sh
             - -c
             - |
-              echo "Starting Nextcloud Database Backup..."
+              set -e
+              echo "==> Starting Nextcloud PostgreSQL Database Backup..."
               BACKUP_FILE="/tmp/nextcloud-db-$(date +%F-%H%M).sql.gz"
               
-              echo "Dumping PostgreSQL database into memory..."
-              PGPASSWORD=$DB_PASSWORD pg_dump -h nextcloud-db-rw -U admin -d nextcloud | gzip > $BACKUP_FILE
+              echo "==> Dumping PostgreSQL database into memory..."
+              PGPASSWORD="$DB_PASSWORD" pg_dump -h nextcloud-db-rw -U admin -d nextcloud | gzip > "$BACKUP_FILE"
               
-              echo "Downloading MinIO Client..."
+              echo "==> Downloading MinIO Client (mc)..."
               wget -qO /tmp/mc https://dl.min.io/client/mc/release/linux-amd64/mc
               chmod +x /tmp/mc
               
-              echo "Uploading backup to MinIO (db-backups bucket)..."
-              /tmp/mc alias set myminio https://10.1.18.7:9000 $MINIO_ACCESS_KEY $MINIO_SECRET_KEY --insecure
-              /tmp/mc cp $BACKUP_FILE myminio/db-backups/ --insecure
+              echo "==> Configuring MinIO connection..."
+              /tmp/mc alias set myminio https://10.1.18.7:9000 "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" --insecure
               
-              echo "✅ Database Backup Successfully Uploaded!"
+              echo "==> Uploading dump to MinIO db-backups bucket..."
+              /tmp/mc cp "$BACKUP_FILE" myminio/db-backups/ --insecure
+              
+              echo "==> Auto-purging database dumps older than 7 days (7-Day Rolling Retention)..."
+              /tmp/mc rm --recursive --force --older-than 7d myminio/db-backups/ --insecure || true
+              
+              echo "✅ Database Backup & 7-Day Pruning Completed Successfully!"
             env:
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: nextcloud-db-credentials
-                  key: password
+                  name: nextcloud-enterprise-secrets
+                  key: db-pass
             - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio-backup-credentials
-                  key: access_key
+                  name: nextcloud-enterprise-secrets
+                  key: minio-key
             - name: MINIO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio-backup-credentials
-                  key: secret_key
+                  name: nextcloud-enterprise-secrets
+                  key: minio-secret

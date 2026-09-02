@@ -1,0 +1,14 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: daily-cluster-backup
+  namespace: velero
+spec:
+  schedule: "0 1 * * *" # Runs daily at 1:00 AM UTC
+  template:
+    includedNamespaces:
+    - nextcloud-system
+    - traefik-system
+    - metallb-system
+    snapshotVolumes: false
+    ttl: 168h0m0s # 7-Day Rolling Retention Policy (Auto-Purges backups older than 7 days)
