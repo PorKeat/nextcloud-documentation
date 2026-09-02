@@ -28,6 +28,7 @@ Conceptual blueprints, system designs, network flows, and disaster recovery stra
 * [07 - 3-Tier Enterprise Disaster Recovery & Backup Architecture](docs/07-enterprise-3tier-backup-architecture.md)
 * [08 - High-Performance Files Backend (Notify Push) Architecture](docs/08-high-performance-notify-push-architecture.md) ⭐
 * [09 - MinIO S3 & Redis Sentinel Diagnostic Reference](docs/09-minio-s3-redis-troubleshooting.md)
+* [10 - Enterprise Zero-Trust Runtime Security & Resilience Architecture](docs/10-enterprise-zero-trust-runtime-security.md) ⭐
 
 ---
 
