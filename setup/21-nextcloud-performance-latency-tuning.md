@@ -190,3 +190,56 @@ To achieve native-app smoothness (~15ms asset loading), configure a Cache Rule i
 6. **Browser TTL:** `4 hours`
 
 Because Nextcloud automatically appends cache-busting version strings (e.g. `?v=34.0.3`), updates and app installs are immediately reflected without cache-poisoning issues.
+
+---
+
+## 🔒 9. Strict TLS 1.3 Protocol Enforcement
+
+To ensure maximum cryptographic security and 1-RTT connection handshake speeds, the ingress layer enforces **strict TLS 1.3 only**. Older, slower, or vulnerable protocols (TLS 1.2, 1.1, 1.0) are actively rejected.
+
+### Traefik `TLSOption` Configuration (`manifests/01-ingress-gateway/traefik-tls13-strict-option.yaml`):
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: default
+  namespace: traefik-system
+spec:
+  minVersion: VersionTLS13
+  sniStrict: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: tls13-strict
+  namespace: nextcloud-system
+spec:
+  minVersion: VersionTLS13
+  sniStrict: false
+```
+
+### Verification:
+1. **TLS 1.3 Client Handshake (Successful):**
+   ```bash
+   openssl s_client -connect 10.1.16.12:31270 -servername drive.unity-workspace.com -tls1_3 </dev/null
+   ```
+   Output:
+   ```text
+   Protocol  : TLSv1.3
+   Cipher    : TLS_AES_128_GCM_SHA256
+   ```
+
+2. **TLS 1.2 Client Handshake (Actively Rejected):**
+   ```bash
+   openssl s_client -connect 10.1.16.12:31270 -servername drive.unity-workspace.com -tls1_2 </dev/null
+   ```
+   Output:
+   ```text
+   error:0A00042E:SSL routines:ssl3_read_bytes:tlsv1 alert protocol version: SSL alert number 70
+   ```
+
+### Cloudflare Edge Configuration:
+To enforce TLS 1.3 globally from the browser to Cloudflare:
+1. Navigate to **Cloudflare Dashboard ➔ SSL/TLS ➔ Edge Certificates**.
+2. Scroll to **Minimum TLS Version**.
+3. Select **`TLS 1.3`**.

@@ -1,0 +1,17 @@
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: default
+  namespace: traefik-system
+spec:
+  minVersion: VersionTLS13
+  sniStrict: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: default
+  namespace: nextcloud-system
+spec:
+  minVersion: VersionTLS13
+  sniStrict: false

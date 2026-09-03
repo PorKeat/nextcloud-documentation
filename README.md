@@ -66,7 +66,8 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 Organized into component-specific subfolders for easy maintenance, inspection, and updates:
 
 ### 🌐 `01-ingress-gateway/`
-* `traefik-ingressroute.yaml` - Main IngressRoute definitions
+* `traefik-ingressroute.yaml` - Main IngressRoute definitions (dual HTTP & strict TLS 1.3 HTTPS)
+* `traefik-tls13-strict-option.yaml` - Strict TLS 1.3 `TLSOption` enforcement
 * `traefik-nodeport-service.yaml` - NodePort service exposures (`31497`/`31270`)
 * `traefik-security-headers-middleware.yaml` - HSTS & security headers middleware
 * `keycloak-ingress.yaml` - Keycloak single-domain routing

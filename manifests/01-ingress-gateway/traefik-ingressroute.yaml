@@ -17,14 +17,15 @@ metadata:
 spec:
   entryPoints:
   - web
-  - websecure
   routes:
   - kind: Rule
-    match: Host("drive.unity-workspace.com") || Host("gateway.unity-workspace.com") || Host("10.1.16.200") || Host("10.1.16.11") || Host("10.1.16.12") || Host("10.1.16.13")
+    match: Host(`drive.unity-workspace.com`) || Host(`gateway.unity-workspace.com`) || Host(`10.1.16.200`) || Host(`10.1.16.11`) || Host(`10.1.16.12`) || Host(`10.1.16.13`)
     middlewares:
     - name: nextcloud-security-headers
       namespace: nextcloud-system
     - name: upload-buffering-middleware
+      namespace: nextcloud-system
+    - name: nextcloud-strip-prefix
       namespace: nextcloud-system
     services:
     - name: nextcloud-service
@@ -34,3 +35,33 @@ spec:
           httpOnly: true
           name: nextcloud_session_sticky
           secure: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nextcloud-route-tls
+  namespace: nextcloud-system
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`drive.unity-workspace.com`) || Host(`gateway.unity-workspace.com`) || Host(`10.1.16.200`) || Host(`10.1.16.11`) || Host(`10.1.16.12`) || Host(`10.1.16.13`)
+    middlewares:
+    - name: nextcloud-security-headers
+      namespace: nextcloud-system
+    - name: upload-buffering-middleware
+      namespace: nextcloud-system
+    - name: nextcloud-strip-prefix
+      namespace: nextcloud-system
+    services:
+    - name: nextcloud-service
+      port: 8080
+      sticky:
+        cookie:
+          httpOnly: true
+          name: nextcloud_session_sticky
+          secure: true
+  tls:
+    options:
+      name: tls13-strict
