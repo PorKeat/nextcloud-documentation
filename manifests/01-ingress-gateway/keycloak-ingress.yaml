@@ -36,8 +36,8 @@ metadata:
   namespace: nextcloud-system
 spec:
   redirectRegex:
-    regex: ^https?://auth\.sengporkeat\.com/?$
-    replacement: https://auth.sengporkeat.com/realms/unity-workspace/account/
+    regex: ^https?://auth\.(unity-workspace\.com|sengporkeat\.com)/?$
+    replacement: https://auth.unity-workspace.com/realms/unity-workspace/account/
     permanent: false
 ---
 # 3. IP Allowlist Middleware (Office Wi-Fi Subnets ONLY)
@@ -65,7 +65,7 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host(`auth.sengporkeat.com`) && Path(`/`)
+    match: (Host(`auth.unity-workspace.com`) || Host(`auth.sengporkeat.com`)) && Path(`/`)
     middlewares:
     - name: keycloak-realm-redirect
       namespace: nextcloud-system
@@ -88,7 +88,7 @@ spec:
   routes:
   - kind: Rule
     # Allows all user logins, tokens, and resources; excludes /admin
-    match: Host(`auth.sengporkeat.com`) && !PathPrefix(`/admin`)
+    match: (Host(`auth.unity-workspace.com`) || Host(`auth.sengporkeat.com`)) && !PathPrefix(`/admin`)
     middlewares:
     - name: nextcloud-security-headers
       namespace: nextcloud-system
@@ -109,7 +109,7 @@ spec:
   routes:
   - kind: Rule
     # Protects /admin with Office Wi-Fi IP Allowlist
-    match: Host(`auth.sengporkeat.com`) && PathPrefix(`/admin`)
+    match: (Host(`auth.unity-workspace.com`) || Host(`auth.sengporkeat.com`)) && PathPrefix(`/admin`)
     middlewares:
     - name: office-wifi-allowlist
       namespace: nextcloud-system

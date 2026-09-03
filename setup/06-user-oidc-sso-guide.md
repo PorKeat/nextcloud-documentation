@@ -26,14 +26,14 @@ kubectl exec -n nextcloud-system deployment/nextcloud -- su -s /bin/bash www-dat
 
 ## 2. Web UI Configuration (Recommended)
 
-1. Log in as an administrator at `https://nextcloud.sengporkeat.com`.
+1. Log in as an administrator at `https://drive.unity-workspace.com`.
 2. Go to **Administration Settings &rarr; Security** (`/settings/admin/security`).
 3. Scroll down to the **OpenID Connect** section.
 4. Click **Add Provider**:
-   * **Identifier:** `keycloak` / `authentik` / `okta`
-   * **Client ID:** `<YOUR_OIDC_CLIENT_ID>`
+   * **Identifier:** `keycloak`
+   * **Client ID:** `apisix-bff`
    * **Client Secret:** `<YOUR_OIDC_CLIENT_SECRET>`
-   * **Discovery Endpoint:** `https://sso.example.com/realms/master/.well-known/openid-configuration`
+   * **Discovery Endpoint:** `https://auth.unity-workspace.com/realms/unity-workspace/.well-known/openid-configuration`
    * **Scope:** `openid email profile`
 5. Check **Auto-create new users on login** (Just-In-Time provisioning).
 6. Click **Save**.
