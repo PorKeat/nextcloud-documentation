@@ -75,7 +75,7 @@ spec:
         - name: OVERWRITEPROTOCOL
           value: "https"
         - name: OVERWRITECLIURL
-          value: "https://nextcloud.sengporkeat.com"
+          value: "https://drive.unity-workspace.com"
         - name: OBJECTSTORE_S3_HOST
           value: "10.1.18.7"
         - name: OBJECTSTORE_S3_PORT

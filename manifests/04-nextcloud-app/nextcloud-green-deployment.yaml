@@ -57,7 +57,7 @@ spec:
         - name: OVERWRITEPROTOCOL
           value: "https"
         - name: OVERWRITECLIURL
-          value: "https://nextcloud.sengporkeat.com"
+          value: "https://drive.unity-workspace.com"
         - name: OBJECTSTORE_S3_HOST
           value: "10.1.18.7"
         - name: OBJECTSTORE_S3_PORT
@@ -117,3 +117,10 @@ spec:
       - name: minio-ca
         secret:
           secretName: minio-tls-ca
+      hostAliases:
+      - ip: "10.233.23.138"
+        hostnames:
+        - "drive.unity-workspace.com"
+        - "office.unity-workspace.com"
+        - "nextcloud.sengporkeat.com"
+        - "collabora.sengporkeat.com"
