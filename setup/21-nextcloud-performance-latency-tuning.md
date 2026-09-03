@@ -279,3 +279,19 @@ When clicking on a file in Nextcloud, users reported that the file would sometim
 4. **File Format Support Rules:**
    * **Files that PREVIEW:** Images (`.png`, `.jpg`, `.webp`, `.svg`, `.heic`, `.tiff`), Office (`.docx`, `.xlsx`, `.pptx`, `.odt`), PDF (`.pdf`), Text/Code (`.txt`, `.md`, `.json`, `.yml`, `.py`), Media (`.mp4`, `.mp3`).
    * **Files that DOWNLOAD:** Archives (`.zip`, `.tar.gz`), Binaries (`.exe`, `.iso`, `.dmg`), or formats without a registered viewer app.
+
+---
+
+## 📑 11. Native Office New-Tab Auto-Opener (`office_newtab`)
+
+By default, Nextcloud opens Office documents inside the same tab using a modal overlay. To allow multitasking without losing the file list view, a native lightweight extension (`office_newtab`) was installed into `/var/www/html/custom_apps/office_newtab`.
+
+### How It Works:
+1. **Synchronous Click Interception (Zero Popup Warnings):**
+   * Listens in the capture phase for normal left-clicks on any office file (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.csv`).
+   * Synchronous execution within the user's click stack guarantees that **browser popup blockers in Chrome, Safari, Edge, and Firefox never trigger**.
+2. **Tabnabbing Protection (`noopener,noreferrer`):**
+   * Uses `window.open(url, '_blank', 'noopener,noreferrer')` to prevent the newly opened Collabora tab from gaining access to the parent window (`window.opener`).
+3. **Preserves Native Actions:**
+   * Selection checkboxes, favorite stars, and the three-dots (`...`) context menu are not intercepted and remain fully functional.
+   * PDFs, text files, and images continue to preview inside the current tab.
