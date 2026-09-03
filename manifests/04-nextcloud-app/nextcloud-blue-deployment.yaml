@@ -118,6 +118,10 @@ spec:
           mountPath: /var/www/html/config/redis.config.php
           subPath: custom-redis.config.php
           readOnly: true
+        - name: custom-php-ini
+          mountPath: /etc/apache2/conf-enabled/apache-tuning.conf
+          subPath: apache-tuning.conf
+          readOnly: true
         resources:
           requests:
             cpu: 500m

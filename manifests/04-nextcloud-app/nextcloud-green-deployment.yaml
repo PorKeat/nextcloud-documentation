@@ -100,6 +100,10 @@ spec:
           mountPath: /var/www/html/config/redis.config.php
           subPath: custom-redis.config.php
           readOnly: true
+        - name: custom-php-ini
+          mountPath: /etc/apache2/conf-enabled/apache-tuning.conf
+          subPath: apache-tuning.conf
+          readOnly: true
         - name: minio-ca
           mountPath: /usr/local/share/ca-certificates/minio-ca.crt
           subPath: minio-ca.crt

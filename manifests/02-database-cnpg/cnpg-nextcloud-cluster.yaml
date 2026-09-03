@@ -1,0 +1,49 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: nextcloud-db
+  namespace: nextcloud-system
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.1
+  primaryUpdateMethod: restart
+  primaryUpdateStrategy: unsupervised
+  storage:
+    size: 20Gi
+    storageClass: longhorn-ha
+    resizeInUseVolumes: true
+  resources:
+    requests:
+      cpu: "1"
+      memory: 2Gi
+    limits:
+      cpu: "2"
+      memory: 3Gi
+  postgresql:
+    parameters:
+      shared_buffers: "1GB"
+      work_mem: "16MB"
+      maintenance_work_mem: "128MB"
+      effective_cache_size: "3GB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      archive_mode: "on"
+      archive_timeout: 5min
+      dynamic_shared_memory_type: posix
+      log_destination: csvlog
+      log_directory: /controller/log
+      log_filename: postgres
+      max_parallel_workers: "32"
+      max_worker_processes: "32"
+      shared_memory_type: mmap
+      ssl_min_protocol_version: TLSv1.3
+      ssl_max_protocol_version: TLSv1.3
+      wal_keep_size: 512MB
+      wal_receiver_timeout: 5s
+      wal_sender_timeout: 5s
+  bootstrap:
+    initdb:
+      database: nextcloud
+      owner: admin
+      secret:
+        name: nextcloud-db-credentials

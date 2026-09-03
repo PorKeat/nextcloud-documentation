@@ -75,6 +75,9 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 ### 🔌 `02-networking-metallb/`
 * `metallb-config.yaml` - MetalLB IPAddressPool and L2Advertisement
 
+### 🐘 `02-database-cnpg/`
+* `cnpg-nextcloud-cluster.yaml` - CloudNativePG PostgreSQL 3-node HA cluster with 1GB shared_buffers & enterprise tuning
+
 ### 🛡️ `03-security-cilium/`
 * `cilium-nextcloud-isolation.yaml` - Cilium eBPF Zero-Trust isolation & DB lockdown
 * `tetragon-nextcloud-process-monitor.yaml` - Tetragon eBPF process execution & file access TracingPolicy

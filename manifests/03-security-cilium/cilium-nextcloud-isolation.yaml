@@ -109,3 +109,12 @@ spec:
     - ports:
       - port: "5432"
         protocol: TCP
+
+  # 4. Allow CloudNativePG Operator (cnpg-system) to reconcile and health-check on port 8000
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: cnpg-system
+    toPorts:
+    - ports:
+      - port: "8000"
+        protocol: TCP
