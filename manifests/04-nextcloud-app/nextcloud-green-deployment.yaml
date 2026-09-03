@@ -93,6 +93,10 @@ spec:
           subPath: ca.ini
           readOnly: true
         - name: custom-php-ini
+          mountPath: /usr/local/etc/php/conf.d/opcache-tuning.ini
+          subPath: opcache-tuning.ini
+          readOnly: true
+        - name: custom-php-ini
           mountPath: /var/www/html/config/redis.config.php
           subPath: custom-redis.config.php
           readOnly: true

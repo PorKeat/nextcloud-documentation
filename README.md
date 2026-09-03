@@ -57,6 +57,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [18 - HashiCorp Vault Secrets Management & Web UI Guide](setup/18-hashicorp-vault-secrets-management.md) ⭐
 * [19 - HashiCorp Vault Agent In-Memory Sidecar Injection Guide](setup/19-vault-agent-sidecar-injection-guide.md) ⭐
 * [20 - Cilium Tetragon eBPF Runtime Security & Process Monitoring Guide](setup/20-cilium-tetragon-runtime-security.md) ⭐
+* [21 - Nextcloud Performance & Latency Optimization Guide](setup/21-nextcloud-performance-latency-tuning.md) ⭐
 
 ---
 
