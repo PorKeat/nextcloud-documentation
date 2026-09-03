@@ -91,10 +91,13 @@ graph TD
 * **Apache APISIX:** Handles advanced traffic routing, proxy-rewriting (`^/nextcloud/(.*)` ➡️ `/${1}`), OIDC SSO integration, and Blue-Green traffic switching.
 * **Traefik Ingress Controller:** Runs on Kubernetes nodes, providing internal load balancing and TLS pass-through.
 
-### Layer 2: Cilium eBPF Zero-Trust Isolation
-* Enforces kernel-level packet filtering.
-* **Cross-Namespace Deny:** Unauthorized namespaces (`default`, `dev`, `test`) cannot reach internal databases or pods.
-* **PostgreSQL Lockdown:** Only authorized Nextcloud pods and backup CronJobs can establish connections to port `5432`.
+### Layer 2: Cilium & Tetragon eBPF Zero-Trust Security Suite
+* **Cilium eBPF Network Policies:** Enforces kernel-level packet filtering and namespace isolation.
+  * **Cross-Namespace Deny:** Unauthorized namespaces (`default`, `dev`, `test`) cannot reach internal databases or pods.
+  * **PostgreSQL Lockdown:** Only authorized Nextcloud pods and replication instances can establish connections to port `5432`.
+* **Tetragon eBPF Runtime Security:** Operates directly inside the Linux kernel to intercept syscalls (`execve`, `openat`).
+  * **Process Observability:** Real-time tracking of all binary executions and command arguments inside containers.
+  * **Webshell & Exploit Prevention:** Real-time kernel intervention (`Sigkill`) against unauthorized shells or privilege escalation attempts.
 
 ### Layer 3: Application Compute & Blue-Green Releases
 * **Nextcloud Blue-Green:** Two independent deployments (`nextcloud-green` and `nextcloud-blue`) alternate roles between **Live** and **Dev/Testing**, guaranteeing zero-downtime releases and instant rollbacks.

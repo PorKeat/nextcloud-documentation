@@ -56,6 +56,7 @@ Hands-on step-by-step setup guides, cut-and-paste commands, and configuration wa
 * [17 - Automated System Health & Security Scorecard Audit](setup/17-system-health-security-audit.md) ⭐
 * [18 - HashiCorp Vault Secrets Management & Web UI Guide](setup/18-hashicorp-vault-secrets-management.md) ⭐
 * [19 - HashiCorp Vault Agent In-Memory Sidecar Injection Guide](setup/19-vault-agent-sidecar-injection-guide.md) ⭐
+* [20 - Cilium Tetragon eBPF Runtime Security & Process Monitoring Guide](setup/20-cilium-tetragon-runtime-security.md) ⭐
 
 ---
 
@@ -75,6 +76,8 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 
 ### 🛡️ `03-security-cilium/`
 * `cilium-nextcloud-isolation.yaml` - Cilium eBPF Zero-Trust isolation & DB lockdown
+* `tetragon-nextcloud-process-monitor.yaml` - Tetragon eBPF process execution & file access TracingPolicy
+* `tetragon-webshell-block.yaml` - Tetragon eBPF automated Sigkill webshell enforcement policy
 
 ### ☁️ `04-nextcloud-app/`
 * `nextcloud-green-deployment.yaml` - Nextcloud Green (Primary/Live) stack

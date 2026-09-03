@@ -129,6 +129,7 @@ Ransomware operators and malicious actors prioritize compromising backup storage
 | **Control Plane** | API Server & etcd | Local Loopback (`127.0.0.1:6443`) & 3-Node Raft | Multi-Master Zero Single-Point-of-Failure |
 | **Edge / WAF** | Tiyi WAF & APISIX | Layer 7 Header Inspection & Geo/IP Filtering | OWASP Top 10 Mitigation |
 | **Network** | Cilium eBPF | Kernel-level eBPF namespace isolation & DB lockdown | Zero-Trust Network Architecture |
+| **Runtime eBPF** | Cilium Tetragon | Real-time `execve`/`openat` syscall monitoring & `Sigkill` | eBPF Zero-Trust Runtime Security |
 | **Workload** | Nextcloud & Push | Seccomp RuntimeDefault, Capability Drops, Non-Root | CIS Kubernetes Benchmark |
 | **Application** | Nextcloud Engine | Trusted Proxies & Anti-Brute-Force Rate Limiting | NIST SP 800-63B Authentication |
 | **Storage** | MinIO & Velero | S3 Object Locking (WORM) & 3-Tier Backups | Immutable Ransomware Defense |

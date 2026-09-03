@@ -1,0 +1,52 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicyNamespaced
+metadata:
+  name: nextcloud-security-process-monitor
+  namespace: nextcloud-system
+spec:
+  kprobes:
+    - call: "sys_execve"
+      syscall: true
+      args:
+        - index: 0
+          type: "string"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Postfix"
+              values:
+                - "/sh"
+                - "/bash"
+                - "/dash"
+                - "/curl"
+                - "/wget"
+                - "/nc"
+          matchActions:
+            - action: Post
+---
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicyNamespaced
+metadata:
+  name: nextcloud-file-integrity-monitor
+  namespace: nextcloud-system
+spec:
+  kprobes:
+    - call: "sys_openat"
+      syscall: true
+      args:
+        - index: 0
+          type: "int"
+        - index: 1
+          type: "string"
+        - index: 2
+          type: "int"
+      selectors:
+        - matchArgs:
+            - index: 1
+              operator: "Prefix"
+              values:
+                - "/var/www/html/config/config.php"
+                - "/etc/shadow"
+                - "/etc/sudoers"
+          matchActions:
+            - action: Post

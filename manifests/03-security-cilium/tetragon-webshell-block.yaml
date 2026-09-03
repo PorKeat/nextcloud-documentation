@@ -1,0 +1,23 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicyNamespaced
+metadata:
+  name: nextcloud-webshell-sigkill-enforcement
+  namespace: nextcloud-system
+spec:
+  kprobes:
+    - call: "sys_execve"
+      syscall: true
+      args:
+        - index: 0
+          type: "string"
+      selectors:
+        - matchArgs:
+            - index: 0
+              operator: "Postfix"
+              values:
+                - "/sh"
+                - "/bash"
+                - "/dash"
+                - "/zsh"
+          matchActions:
+            - action: Sigkill
