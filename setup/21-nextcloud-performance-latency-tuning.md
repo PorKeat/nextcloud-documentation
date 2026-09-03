@@ -262,10 +262,20 @@ When clicking on a file in Nextcloud, users reported that the file would sometim
      ```
    * **Result:** All 4 discovery checks passed; Collabora Online Development Edition 26.04.3.2 is connected.
 
-2. **Unregistered Preview Providers:**
-   * Nextcloud only generates previews for mime types listed under `enabledPreviewProviders`.
-   * **Fix Applied:** Enabled full preview provider list (`PDF`, `TXT`, `MarkDown`, `OpenDocument`, `PNG`, `JPEG`, `GIF`, `BMP`, `XBitmap`, `MP3`).
+2. **Unregistered Preview Providers & Image Formats:**
+   * Modern camera and web formats (`.heic` from iPhones, `.webp`, `.svg`, `.tiff`) require dedicated preview generators.
+   * If a format was missing from `enabledPreviewProviders`, Nextcloud could not render an in-browser preview and triggered a download fallback.
+   * Large camera photos (>20MB) were blocked by restrictive `preview_max_filesize_image`.
+   * **Fix Applied:**
+     ```bash
+     php occ config:system:set preview_max_filesize_image --value=50 --type=integer
+     # Enabled: PNG, JPEG, GIF, BMP, XBitmap, MP3, TXT, MarkDown, OpenDocument, PDF, WebP, SVG, HEIC, TIFF, Movie
+     ```
 
-3. **File Format Support Rules:**
-   * **Files that PREVIEW:** Office (`.docx`, `.xlsx`, `.pptx`, `.odt`), PDF (`.pdf`), Text/Code (`.txt`, `.md`, `.json`, `.yml`, `.py`), Images (`.png`, `.jpg`, `.webp`), Media (`.mp4`, `.mp3`).
+3. **Frontend Click Race Condition (Page Still Loading):**
+   * The Files app table rows render first, while `viewer.js` attaches the "open image viewer" click listener asynchronously.
+   * If an image is clicked immediately within milliseconds before `viewer.js` finishes binding, the default table action defaults to Download.
+
+4. **File Format Support Rules:**
+   * **Files that PREVIEW:** Images (`.png`, `.jpg`, `.webp`, `.svg`, `.heic`, `.tiff`), Office (`.docx`, `.xlsx`, `.pptx`, `.odt`), PDF (`.pdf`), Text/Code (`.txt`, `.md`, `.json`, `.yml`, `.py`), Media (`.mp4`, `.mp3`).
    * **Files that DOWNLOAD:** Archives (`.zip`, `.tar.gz`), Binaries (`.exe`, `.iso`, `.dmg`), or formats without a registered viewer app.
