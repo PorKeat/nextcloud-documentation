@@ -9,7 +9,7 @@ spec:
     - websecure
   routes:
     - kind: Rule
-      match: Host(`office.unity-workspace.com`) || Host(`collabora.sengporkeat.com`) || Host(`office.sengporkeat.com`)
+      match: Host(`office.unity-workspace.com`)
       services:
         - name: collabora
           port: 9980

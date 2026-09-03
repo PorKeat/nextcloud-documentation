@@ -20,7 +20,7 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host("drive.unity-workspace.com") || Host("nextcloud.sengporkeat.com") || Host("10.1.16.200") || Host("10.1.16.11") || Host("10.1.16.12") || Host("10.1.16.13")
+    match: Host("drive.unity-workspace.com") || Host("gateway.unity-workspace.com") || Host("10.1.16.200") || Host("10.1.16.11") || Host("10.1.16.12") || Host("10.1.16.13")
     middlewares:
     - name: nextcloud-security-headers
       namespace: nextcloud-system

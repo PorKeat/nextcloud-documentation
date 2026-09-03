@@ -122,5 +122,4 @@ spec:
         hostnames:
         - "drive.unity-workspace.com"
         - "office.unity-workspace.com"
-        - "nextcloud.sengporkeat.com"
-        - "collabora.sengporkeat.com"
+        - "gateway.unity-workspace.com"
