@@ -243,3 +243,29 @@ To enforce TLS 1.3 globally from the browser to Cloudflare:
 1. Navigate to **Cloudflare Dashboard ➔ SSL/TLS ➔ Edge Certificates**.
 2. Scroll to **Minimum TLS Version**.
 3. Select **`TLS 1.3`**.
+
+---
+
+## 🔍 10. File Preview vs. Download Resolution
+
+### Root Cause Analysis:
+When clicking on a file in Nextcloud, users reported that the file would sometimes download instead of opening an in-browser preview. The investigation identified two root causes:
+
+1. **Stale Collabora WOPI Endpoint:**
+   * The `richdocuments` app was configured with `wopi_url: https://collabora.sengporkeat.com`, an old offline domain.
+   * When users clicked `.docx`, `.xlsx`, or `.pptx` files, Nextcloud failed to contact the office server and immediately triggered a fallback download.
+   * **Fix Applied:**
+     ```bash
+     php occ config:app:set richdocuments wopi_url --value="https://office.unity-workspace.com"
+     php occ config:app:set richdocuments public_wopi_url --value="https://office.unity-workspace.com"
+     php occ richdocuments:activate-config
+     ```
+   * **Result:** All 4 discovery checks passed; Collabora Online Development Edition 26.04.3.2 is connected.
+
+2. **Unregistered Preview Providers:**
+   * Nextcloud only generates previews for mime types listed under `enabledPreviewProviders`.
+   * **Fix Applied:** Enabled full preview provider list (`PDF`, `TXT`, `MarkDown`, `OpenDocument`, `PNG`, `JPEG`, `GIF`, `BMP`, `XBitmap`, `MP3`).
+
+3. **File Format Support Rules:**
+   * **Files that PREVIEW:** Office (`.docx`, `.xlsx`, `.pptx`, `.odt`), PDF (`.pdf`), Text/Code (`.txt`, `.md`, `.json`, `.yml`, `.py`), Images (`.png`, `.jpg`, `.webp`), Media (`.mp4`, `.mp3`).
+   * **Files that DOWNLOAD:** Archives (`.zip`, `.tar.gz`), Binaries (`.exe`, `.iso`, `.dmg`), or formats without a registered viewer app.
