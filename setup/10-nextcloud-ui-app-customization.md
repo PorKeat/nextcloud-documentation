@@ -98,3 +98,163 @@ If you want to keep the Photos app but absolutely must hide the "Places", "Map",
    ```bash
    kubectl exec -n nextcloud-system deployment/nextcloud -- php occ maintenance:theme:update
    ```
+
+---
+
+## 4. Developing & Deploying In-House Custom Nextcloud Apps
+
+When advanced UI or workflow modifications are required (e.g. forcing documents to open in new browser tabs, custom authentication hooks, or custom button handlers), **never modify Nextcloud core files or official signed apps directly**.
+
+### Why Build an In-House Custom App?
+* **Zero Integrity Failures:** Nextcloud verifies the GPG signatures of official apps (e.g., `richdocuments`, `viewer`). Tampering with them triggers `INVALID_HASH / Signature Failed` in the Admin Overview.
+* **Persistent Across Upgrades:** Custom apps placed in `/var/www/html/custom_apps/` live on persistent storage (Longhorn PV) and survive container rollouts, pod restarts, and Nextcloud core updates.
+* **Native Lifecycle:** Custom apps are enabled, disabled, and managed natively via the standard `occ app:*` CLI and Nextcloud UI.
+
+### Production Case Study: The `office_newtab` Custom App
+
+A real-world in-house app created to automatically open Office files (`.docx`, `.xlsx`, `.pptx`, `.odt`, `.csv`) in a dedicated, secure browser tab on regular left-click.
+
+#### 📁 App Directory Structure
+```
+/var/www/html/custom_apps/office_newtab/
+├── appinfo/
+│   └── info.xml              # Nextcloud app metadata & namespace definition
+├── lib/
+│   └── AppInfo/
+│       └── Application.php   # PHP bootstrap class injecting frontend script
+└── js/
+    └── office-newtab.js      # Secure client-side click interceptor
+```
+
+#### 1. `appinfo/info.xml`
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<info>
+    <id>office_newtab</id>
+    <name>Office New Tab</name>
+    <description>Securely opens Nextcloud Office documents in a new tab on click</description>
+    <version>1.0.0</version>
+    <licence>AGPL-3.0-or-later</licence>
+    <author>Unity Workspace</author>
+    <namespace>OfficeNewTab</namespace>
+    <category>customization</category>
+    <dependencies>
+        <nextcloud min-version="25" max-version="35"/>
+    </dependencies>
+</info>
+```
+
+#### 2. `lib/AppInfo/Application.php`
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\OfficeNewTab\AppInfo;
+
+use OCP\AppFramework\App;
+use OCP\AppFramework\Bootstrap\IBootContext;
+use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Util;
+
+class Application extends App implements IBootstrap {
+    public const APP_ID = 'office_newtab';
+
+    public function __construct() {
+        parent::__construct(self::APP_ID);
+    }
+
+    public function register(IRegistrationContext $context): void {
+    }
+
+    public function boot(IBootContext $context): void {
+        Util::addScript(self::APP_ID, 'office-newtab');
+    }
+}
+```
+
+#### 3. `js/office-newtab.js`
+```javascript
+// Open Office files in a secure new browser tab on click
+;(function() {
+  "use strict";
+
+  function isOfficeFile(mime, name) {
+    return /^(application\/(vnd\.(ms-|openxmlformats|oasis)|msword|msexcel)|text\/csv)/i.test(mime || "") ||
+           /\.(docx?|xlsx?|pptx?|odt|ods|odp|csv)$/i.test(name || "");
+  }
+
+  function openOfficeInNewTab(fileId) {
+    if (!fileId) return false;
+    var url = (window.OC && OC.generateUrl) 
+      ? OC.generateUrl("/apps/richdocuments/index?fileId=" + encodeURIComponent(fileId))
+      : "/apps/richdocuments/index?fileId=" + encodeURIComponent(fileId);
+    
+    // Strict security: prevent tabnabbing with noopener,noreferrer
+    var newWindow = window.open(url, "_blank", "noopener,noreferrer");
+    if (newWindow) {
+      newWindow.focus();
+      return true;
+    }
+    return false;
+  }
+
+  // Intercept user left click on file row in capture phase
+  document.addEventListener("click", function(e) {
+    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) {
+      return;
+    }
+
+    // Do not intercept actions menu, selection checkboxes, favorites
+    if (e.target.closest("[data-cy-files-list-row-checkbox], [data-cy-files-list-row-action], .action-menu, .file-actions, .favorite, input[type=\"checkbox\"], a[data-action]")) {
+      return;
+    }
+
+    var row = e.target.closest("[data-cy-files-list-row], tr[data-file], tr[data-mime], .file-item");
+    if (!row) return;
+
+    var mime = row.getAttribute("data-cy-files-list-row-mime") || row.getAttribute("data-mime") || "";
+    var fileId = row.getAttribute("data-cy-files-list-row-fileid") || row.getAttribute("data-id") || row.getAttribute("data-file-id");
+    var name = row.getAttribute("data-cy-files-list-row-name") || row.getAttribute("data-file") || "";
+
+    if (isOfficeFile(mime, name) && fileId) {
+      e.preventDefault();
+      e.stopPropagation();
+      openOfficeInNewTab(fileId);
+    }
+  }, true);
+
+  // Fallback: intercept Viewer if opened programmatically
+  function hookViewer() {
+    if (window.OCA && window.OCA.Viewer && !window.OCA.Viewer._hookedForNewTab) {
+      window.OCA.Viewer._hookedForNewTab = true;
+      var originalOpenWith = window.OCA.Viewer.openWith.bind(window.OCA.Viewer);
+      window.OCA.Viewer.openWith = function(handlerId, options) {
+        if (handlerId === "richdocuments") {
+          var fileId = (options && options.fileInfo && options.fileInfo.id) || (options && options.fileId) || (options && options.id);
+          if (fileId && openOfficeInNewTab(fileId)) {
+            return;
+          }
+        }
+        return originalOpenWith(handlerId, options);
+      };
+    }
+  }
+
+  hookViewer();
+  window.addEventListener("DOMContentLoaded", hookViewer);
+})();
+```
+
+#### Managing In-House Apps
+```bash
+# Enable app
+kubectl exec -n nextcloud-system deployment/nextcloud -c nextcloud -- su -s /bin/bash www-data -c 'php occ app:enable office_newtab'
+
+# Disable app
+kubectl exec -n nextcloud-system deployment/nextcloud -c nextcloud -- su -s /bin/bash www-data -c 'php occ app:disable office_newtab'
+
+# List custom apps
+kubectl exec -n nextcloud-system deployment/nextcloud -c nextcloud -- su -s /bin/bash www-data -c 'php occ app:list' | grep office_newtab
+```

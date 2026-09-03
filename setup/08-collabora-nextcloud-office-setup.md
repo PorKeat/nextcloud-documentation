@@ -57,28 +57,34 @@ spec:
 
 ## 4. Nextcloud WOPI Configuration
 
-Configure Nextcloud to use the standard public domain for both internal and external WOPI communication, and secure the WOPI allowlist to internal Kubernetes IPs.
+Configure Nextcloud to use the standard public domain (`https://office.unity-workspace.com`) for both internal and external WOPI communication, and secure the WOPI allowlist to internal Kubernetes IPs.
 
 ```bash
 # Set WOPI URLs
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:app:set richdocuments wopi_url --value="https://collabora.sengporkeat.com"
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:app:set richdocuments public_wopi_url --value="https://collabora.sengporkeat.com"
+kubectl exec -n nextcloud-system deployment/nextcloud -- su -s /bin/bash www-data -c 'php occ config:app:set richdocuments wopi_url --value="https://office.unity-workspace.com"'
+kubectl exec -n nextcloud-system deployment/nextcloud -- su -s /bin/bash www-data -c 'php occ config:app:set richdocuments public_wopi_url --value="https://office.unity-workspace.com"'
 
-# Disable strict internal cert verification (since we bypass the WAF internally)
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:app:set richdocuments disable_certificate_verification --value="yes"
+# Disable strict internal cert verification (since internal calls traverse ClusterIP)
+kubectl exec -n nextcloud-system deployment/nextcloud -- su -s /bin/bash www-data -c 'php occ config:app:set richdocuments disable_certificate_verification --value="yes"'
 
 # Secure WOPI Allowlist to internal K8s subnets
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ config:app:set richdocuments wopi_allowlist --value="10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+kubectl exec -n nextcloud-system deployment/nextcloud -- su -s /bin/bash www-data -c 'php occ config:app:set richdocuments wopi_allowlist --value="10.233.0.0/16,10.0.0.0/8"'
 
-# Activate Configuration
-kubectl exec -n nextcloud-system deployment/nextcloud -- php occ richdocuments:activate-config
+# Activate and verify Discovery endpoints
+kubectl exec -n nextcloud-system deployment/nextcloud -- su -s /bin/bash www-data -c 'php occ richdocuments:activate-config'
 ```
 
 ---
 
 ## 5. Tiyi WAF Configuration
 
-When adding `collabora.sengporkeat.com` to the external WAF, the Upstream (Backend) configuration must be an **exact clone** of the Nextcloud configuration.
+When adding `office.unity-workspace.com` to the external WAF, the Upstream (Backend) configuration must be an **exact clone** of the Nextcloud configuration.
 
 * **Upstream IP & Port:** Use the exact same NodePort as Nextcloud (e.g., `http://10.1.16.11:31497`). 
-* **Why?** Traefik acts as a single entry point. It receives all traffic on port `31497`, reads the `Host: collabora.sengporkeat.com` HTTP header, and automatically routes the traffic internally to the Collabora pod on port `9980`.
+* **Why?** Traefik acts as a single entry point. It receives all traffic on port `31497`, reads the `Host: office.unity-workspace.com` HTTP header, and automatically routes the traffic internally to the Collabora pod on port `9980`.
+
+---
+
+## 6. Secure New-Tab Auto-Opener (`office_newtab`)
+
+By default, Collabora opens documents inside an in-page modal overlay. To allow multitasking without losing folder context, the custom `office_newtab` extension intercepts left-clicks and opens the document in a new browser tab with strict `noopener,noreferrer` security. See [10 - Nextcloud UI & App Customization Guide](10-nextcloud-ui-app-customization.md) for full architecture and code.
