@@ -1,6 +1,6 @@
-# 9. MinIO S3 + Redis + Login Troubleshooting Guide
+# 9. MinIO S3 + Valkey (formerly Redis) + Login Troubleshooting Guide
 
-This guide documents all production issues encountered and resolved on **2026-08-25**, covering MinIO S3 upload failures, Redis/file-locking conflicts, Traefik upload buffering, and PostgreSQL DAV login crashes.
+This guide documents all production issues encountered and resolved, covering MinIO S3 upload failures, in-memory caching/file-locking conflicts, Traefik upload buffering, and PostgreSQL DAV login crashes.
 
 ---
 
@@ -56,7 +56,7 @@ kubectl exec -n nextcloud-system deployment/nextcloud -- \
 
 ---
 
-## 2. Redis Transactional Locking Conflict with S3 (`HTTP 423 Locked`)
+## 2. In-Memory Transactional Locking Conflict with S3 (`HTTP 423 Locked`)
 
 ### Symptom
 Every file upload returns `HTTP 423 Locked`:
@@ -65,7 +65,7 @@ LockedException: files/... is locked, existing lock on file: none
 ```
 
 ### Root Cause
-Nextcloud's `memcache.locking => \OC\Memcache\Redis` applies POSIX-style transactional file locks. When using **MinIO S3 as Primary Object Storage**, S3 handles atomic writes natively. Layering Redis POSIX locks over S3 stream writes causes irreconcilable lock collisions — the lock is acquired, the S3 write starts, then fails, but the lock is never released, permanently blocking the filename.
+Nextcloud's `memcache.locking => \OC\Memcache\Redis` applies POSIX-style transactional file locks. When using **MinIO S3 as Primary Object Storage**, S3 handles atomic writes natively. Layering in-memory POSIX locks over S3 stream writes causes irreconcilable lock collisions — the lock is acquired, the S3 write starts, then fails, but the lock is never released, permanently blocking the filename.
 
 ### Fix
 ```bash
@@ -78,22 +78,21 @@ kubectl exec -n nextcloud-system deployment/nextcloud -- \
   php occ config:system:set filelocking.enabled --type=boolean --value=false
 ```
 
-**Correct `config.php` for S3 primary storage:**
+**Correct `config.php` for S3 primary storage with Valkey:**
 ```php
 'memcache.local'       => '\\OC\\Memcache\\APCu',
-'memcache.distributed' => '\\OC\\Memcache\\Redis',  // kept for session caching
+'memcache.distributed' => '\\OC\\Memcache\\Redis',  // kept for distributed cache (connected to Valkey)
 'filelocking.enabled'  => false,                     // S3 handles concurrency natively
 'redis' => array (
-  'host'            => 'nextcloud-redis',
-  'port'            => 26379,
-  'password'        => '<REDIS_PASSWORD>',
-  'redis::sentinel' => 'mymaster',
-  'timeout'         => 1.5,
-  'read_timeout'    => 1.5,
+  'host'            => 'nextcloud-valkey-node-0.nextcloud-valkey-headless',
+  'port'            => 6379,
+  'password'        => '<VALKEY_PASSWORD>',
+  'timeout'         => 0.0,
+  'read_timeout'    => 0.0,
 ),
 ```
 
-> **Note:** Redis is still active for distributed caching and sessions. Only the S3-incompatible POSIX locking layer is removed.
+> **Note:** Valkey is still active for distributed caching, session storage, and WebSocket pub/sub messaging (`notify_push`). Only the S3-incompatible POSIX locking layer is removed.
 
 ---
 

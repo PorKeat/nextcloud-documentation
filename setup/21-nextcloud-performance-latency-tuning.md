@@ -295,3 +295,92 @@ By default, Nextcloud opens Office documents inside the same tab using a modal o
 3. **Preserves Native Actions:**
    * Selection checkboxes, favorite stars, and the three-dots (`...`) context menu are not intercepted and remain fully functional.
    * PDFs, text files, and images continue to preview inside the current tab.
+
+---
+
+## ⚡ 12. Valkey In-Memory Caching & Sentinel HA Migration
+
+In September 2026, the Nextcloud caching, transactional file locking, and real-time WebSocket backend was migrated from **Redis 8.x** to **Valkey 9.x / 8.x** (Linux Foundation, BSD-3-Clause).
+
+### Why Valkey?
+* **100% True Open Source:** Following Redis Inc.'s switch away from open source to restrictive commercial licenses (RSALv2 / SSPLv1), Valkey was launched under the Linux Foundation with backing from AWS, Google Cloud, Oracle, and Percona.
+* **Drop-in Wire Compatibility:** Valkey implements the identical Redis RESP2 and RESP3 wire protocol. PHP's compiled `ext-redis` extension and Nextcloud connect seamlessly without any client modification.
+* **Enhanced Multi-Threaded I/O:** Valkey provides superior concurrent throughput and lower tail latency for distributed locks under heavy simultaneous user sync workloads.
+
+### Cluster Topology & Architecture
+* **StatefulSet:** `nextcloud-valkey-node` (2 replicas: `node-0` Primary Master, `node-1` Replica).
+* **Sentinel Failover:** Running on port `26379` with quorum `2` (`myprimary` master set).
+* **Nextcloud Service:** `nextcloud-valkey:6379` / `nextcloud-valkey-headless:6379`.
+* **Resource Profile:**
+  * Replicas: 250m Request / 1000m Limit CPU, 512Mi Request / 1Gi Limit RAM.
+  * Sentinels: 100m Request / 500m Limit CPU, 128Mi Request / 256Mi Limit RAM.
+
+### Deployment & Installation Commands
+```bash
+# 1. Add Bitnami Chart Repo
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update bitnami
+
+# 2. Deploy Valkey with Sentinel HA
+helm install nextcloud-valkey bitnami/valkey --namespace nextcloud-system \
+  --set architecture=replication \
+  --set auth.password='R5d#2D@!5' \
+  --set sentinel.enabled=true \
+  --set sentinel.masterSet=myprimary \
+  --set replica.replicaCount=2 \
+  --set master.persistence.enabled=false \
+  --set replica.persistence.enabled=false \
+  --set replica.resources.limits.cpu=1000m \
+  --set replica.resources.limits.memory=1Gi \
+  --set replica.resources.requests.cpu=250m \
+  --set replica.resources.requests.memory=512Mi \
+  --set sentinel.resources.limits.cpu=500m \
+  --set sentinel.resources.limits.memory=256Mi \
+  --set sentinel.resources.requests.cpu=100m \
+  --set sentinel.resources.requests.memory=128Mi
+
+# 3. Configure Nextcloud (nextcloud-php-custom-ini ConfigMap)
+cat << 'EOF' | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nextcloud-php-custom-ini
+  namespace: nextcloud-system
+data:
+  custom-redis.config.php: |
+    <?php
+    $CONFIG = array (
+      'memcache.distributed' => '\OC\Memcache\Redis',
+      'memcache.locking' => '\OC\Memcache\Redis',
+      'redis' => array(
+        'host' => 'nextcloud-valkey-node-0.nextcloud-valkey-headless',
+        'port' => 6379,
+        'password' => 'R5d#2D@!5',
+        'timeout' => 0.0,
+        'read_timeout' => 0.0,
+      ),
+    );
+EOF
+
+# 4. Update Notify Push WebSocket Daemon
+kubectl set env deployment/nextcloud-notify-push -n nextcloud-system \
+  REDIS_URL='redis://:R5d%232D%40%215@nextcloud-valkey-node-0.nextcloud-valkey-headless:6379'
+
+# 5. Decommission Old Redis Release
+helm uninstall nextcloud-redis -n nextcloud-system
+```
+
+### Verification & Health Checks
+```bash
+# Check Valkey Master-Replica sync
+kubectl exec nextcloud-valkey-node-0 -n nextcloud-system -c valkey -- valkey-cli -a 'R5d#2D@!5' info replication
+
+# Check Sentinel Primary Status
+kubectl exec nextcloud-valkey-node-0 -n nextcloud-system -c sentinel -- valkey-cli -p 26379 -a 'R5d#2D@!5' sentinel master myprimary
+
+# Check Nextcloud Health
+kubectl exec deployment/nextcloud -n nextcloud-system -c nextcloud -- su -s /bin/bash www-data -c 'php occ status'
+
+# Check Notify Push Pub/Sub verification
+kubectl exec deployment/nextcloud -n nextcloud-system -c nextcloud -- su -s /bin/bash www-data -c 'php occ notify_push:self-test'
+```

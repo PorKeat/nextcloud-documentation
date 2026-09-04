@@ -63,7 +63,7 @@ spec:
         - name: DATABASE_URL
           value: "postgres://admin:<URL_ENCODED_DB_PASSWORD>@nextcloud-db-rw:5432/nextcloud"
         - name: REDIS_URL
-          value: "redis://:<URL_ENCODED_REDIS_PASSWORD>@nextcloud-redis-node-1.nextcloud-redis-headless:6379"
+          value: "redis://:<URL_ENCODED_VALKEY_PASSWORD>@nextcloud-valkey-node-0.nextcloud-valkey-headless:6379"
         - name: NEXTCLOUD_CONFIG_DIR
           value: "/var/www/html/config"
         resources:

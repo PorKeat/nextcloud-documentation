@@ -27,7 +27,7 @@ Conceptual blueprints, system designs, network flows, and disaster recovery stra
 * [06 - Nextcloud Blue-Green Zero-Downtime Deployment Strategy](docs/06-blue-green-deployment-strategy.md) ⭐
 * [07 - 3-Tier Enterprise Disaster Recovery & Backup Architecture](docs/07-enterprise-3tier-backup-architecture.md)
 * [08 - High-Performance Files Backend (Notify Push) Architecture](docs/08-high-performance-notify-push-architecture.md) ⭐
-* [09 - MinIO S3 & Redis Sentinel Diagnostic Reference](docs/09-minio-s3-redis-troubleshooting.md)
+* [09 - MinIO S3 & Valkey (formerly Redis) Sentinel Diagnostic Reference](docs/09-minio-s3-redis-troubleshooting.md)
 * [10 - Enterprise Zero-Trust Runtime Security & Resilience Architecture](docs/10-enterprise-zero-trust-runtime-security.md) ⭐
 * [11 - HashiCorp Vault Enterprise Secrets Architecture](docs/11-hashicorp-vault-enterprise-secrets.md) ⭐
 
@@ -101,6 +101,9 @@ Organized into component-specific subfolders for easy maintenance, inspection, a
 ### 🔐 `08-vault-integration/`
 * `vault-agent-injector.yaml` - Official HashiCorp Vault Agent Injector controller
 * `vault-agent-template-example.yaml` - In-memory RAM (`tmpfs`) sidecar injection template
+
+### ⚡ `09-cache-valkey/`
+* `valkey-values.yaml` - Valkey Sentinel High Availability (BSD-3-Clause) Helm values
 
 ---
 
