@@ -22,13 +22,23 @@ spec:
         - containerPort: 9980
         env:
         - name: domain
-          value: "(drive\\.unity-workspace\\.com|office\\.unity-workspace\\.com|gateway\\.unity-workspace\\.com)"
+          value: ".*"
         - name: extra_params
-          value: "--o:ssl.enable=false --o:ssl.termination=true --o:mount_jail_tree=false"
+          value: "--o:ssl.enable=false --o:ssl.termination=true --o:mount_jail_tree=false --o:ssl.ssl_verification=false"
+        - name: aliasgroup1
+          value: "https://drive.unity-workspace.com:443,https://drive.unity-workspace.com,https://office.unity-workspace.com:443,https://office.unity-workspace.com,https://gateway.unity-workspace.com:443,https://gateway.unity-workspace.com"
         - name: username
           value: "<COLLABORA_ADMIN_USER>"
         - name: password
           value: "<COLLABORA_ADMIN_PASSWORD>"
+        securityContext:
+          capabilities:
+            add:
+            - SYS_ADMIN
+            - CHOWN
+            - FOWNER
+            - MKNOD
+            - SYS_CHROOT
         readinessProbe:
           httpGet:
             path: /hosting/discovery

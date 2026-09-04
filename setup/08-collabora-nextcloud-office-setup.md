@@ -88,3 +88,33 @@ When adding `office.unity-workspace.com` to the external WAF, the Upstream (Back
 ## 6. Secure New-Tab Auto-Opener (`office_newtab`)
 
 By default, Collabora opens documents inside an in-page modal overlay. To allow multitasking without losing folder context, the custom `office_newtab` extension intercepts left-clicks and opens the document in a new browser tab with strict `noopener,noreferrer` security. See [10 - Nextcloud UI & App Customization Guide](10-nextcloud-ui-app-customization.md) for full architecture and code.
+
+---
+
+## 7. Collabora WOPI Host Authorization & Container Privileges
+
+If users encounter **"Unauthorized WOPI host. Please try again later and report to your administrator if the issue persists."** when loading documents:
+
+1. **WOPI Alias Groups (`aliasgroup1`):**
+   * Collabora strictly checks the incoming `WOPISrc` URL scheme, domain, and port against authorized alias groups.
+   * Both port-explicit (`:443`) and standard scheme forms must be present for all accessing domains (`drive.unity-workspace.com`, `office.unity-workspace.com`, `gateway.unity-workspace.com`).
+   * Set `domain: ".*"` as a fallback match.
+
+2. **Internal TLS Verification:**
+   * When Collabora connects back to Nextcloud via internal Kubernetes ClusterIP / Traefik (`hostAliases`), internal self-signed or proxy certificates can trigger connection reset (`ECONNRESET`).
+   * Add `--o:ssl.ssl_verification=false` to Collabora's `extra_params`.
+
+3. **Document Jail Mounting Capabilities (`CAP_SYS_ADMIN`):**
+   * Collabora uses `coolmount` to construct secure chroot isolation jails for active document sessions.
+   * In containerized environments (Kubernetes/containerd), `coolmount` requires Linux capabilities. Without them, document load fails with `Failed to exec coolmount: The helper needs CAP_SYS_ADMIN`.
+   * Add the following capabilities to Collabora's `securityContext`:
+     ```yaml
+     securityContext:
+       capabilities:
+         add:
+           - SYS_ADMIN
+           - CHOWN
+           - FOWNER
+           - MKNOD
+           - SYS_CHROOT
+     ```
